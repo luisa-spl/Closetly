@@ -1,0 +1,6 @@
+@Closetly_HostAddress = http://localhost:5237
+
+GET {{Closetly_HostAddress}}/
+Accept: application/json
+
+###
