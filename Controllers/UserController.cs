@@ -14,24 +14,29 @@ namespace Closetly.Controllers
         {
             _userService = userService;
         }
+
         //criar usuario
-        //IActionResult de 200 à 500
-        public IActionResult CreateUser([FromBody] TbUser user)
-         
-            
-            //updateUser ---- Géssica
+        [HttpPost]
+        public IActionResult CreateUser([FromBody] UserDTO user)
+        {
+            _userService.CreateUser(user);
+
+            return Ok();
+        }
+
+        //updateUser ---- Géssica
 
         [HttpPatch("{id}", Name = "UpdateUser")]
         public IActionResult UpdateUser([FromRoute] Guid id, [FromBody] UpdateUserRequest request)
         {
             string error = _userService.UpdateUser(id, request.Name, request.Phone, request.Email);
-            if(error == "error")
+            if (error == "error")
             {
                 return BadRequest();
             }
             return Ok();
         }
-  
-        
+
+
     }
 }
