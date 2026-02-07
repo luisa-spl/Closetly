@@ -38,7 +38,7 @@ namespace Closetly.Controllers
         [HttpGet("{userId}/orders", Name = "GetUserOrders")]
         public IActionResult GetUserOrders([FromRoute] Guid userId)
         {
-            List<TbOrder>? orders = _userService.GetUserOrders(userId);
+            List<OrderDTO>? orders = _userService.GetUserOrders(userId);
             if(orders == null)
             {
                 ProblemDetails problemDetails = new ProblemDetails
