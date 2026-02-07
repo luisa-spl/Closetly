@@ -24,7 +24,7 @@ namespace Closetly.Services
             TbUser? user = _repository.GetById(id);
             if(user == null)
             {
-                return "error";
+                return "Usuário não encontrado";
             }
 
             _repository.UpdateUser(id, newUserName, newPhone, newEmail);
