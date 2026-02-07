@@ -30,5 +30,18 @@ namespace Closetly.Services
             _repository.UpdateUser(id, newUserName, newPhone, newEmail);
             return "";
         }
+
+        public List<TbOrder>? GetUserOrders(Guid userId)
+        {
+            TbUser? user = _repository.GetById(userId);
+            if(user == null)
+            {
+                return null;
+            }
+
+            List<TbOrder> orders = _repository.GetUserOrders(userId);
+            
+            return orders;
+        }
     }
 }

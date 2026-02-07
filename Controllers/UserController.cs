@@ -1,4 +1,5 @@
 using Closetly.DTO;
+using Closetly.Models;
 using Closetly.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,7 +34,22 @@ namespace Closetly.Controllers
 
             return Ok();
         }
-  
-        
+
+        [HttpGet("{userId}/orders", Name = "GetUserOrders")]
+        public IActionResult GetUserOrders([FromRoute] Guid userId)
+        {
+            List<TbOrder>? orders = _userService.GetUserOrders(userId);
+            if(orders == null)
+            {
+                ProblemDetails problemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Usuário não existe na base de dados",
+                    Detail = "Usuário não foi encontrado para o id informado",
+                };
+                return BadRequest(problemDetails);
+            }
+            return Ok(orders);
+        }
     }
 }

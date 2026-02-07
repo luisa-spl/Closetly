@@ -33,6 +33,13 @@ namespace Closetly.Repository
             foundUser.Email = newEmail;
             _context.SaveChanges();
         }
+
+        public List<TbOrder> GetUserOrders(Guid userId)
+        {
+            var orders = _context.TbOrders.Where(o => o.UserId == userId).ToList();
+            
+            return orders;
+        }
         
     }
 }
