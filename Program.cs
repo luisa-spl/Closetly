@@ -1,6 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Closetly.Data;
 using System;
+using Closetly.Repository;
+using Closetly.Services;
+using Closetly.Services.Interface;
+using Closetly.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,8 +16,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
-
+builder.Services.AddDbContext<PostgresContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
