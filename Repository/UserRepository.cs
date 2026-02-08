@@ -36,7 +36,6 @@ namespace Closetly.Repository
         {
             TbUser newUser = new TbUser();
 
-            newUser.UserId = user.Id;
             newUser.UserName = user.UserName;
             newUser.Phone = user.Phone;
             newUser.Email = user.Email;
