@@ -16,7 +16,7 @@ namespace Closetly.Controllers
             _userService = userService;
         }
 
-        [HttpPatch("{id}", Name = "UpdateUser")]
+        [HttpPatch("{id}/update", Name = "UpdateUser")]
         public IActionResult UpdateUser([FromRoute] Guid id, [FromBody] UpdateUserRequest request)
         {
             string error = _userService.UpdateUser(id, request.Name, request.Phone, request.Email);
