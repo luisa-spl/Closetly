@@ -5,6 +5,7 @@ using Closetly.Repository;
 using Closetly.Services;
 using Closetly.Services.Interface;
 using Closetly.Models;
+using Closetly.Repository.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<PostgresContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
