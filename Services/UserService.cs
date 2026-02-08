@@ -30,6 +30,19 @@ namespace Closetly.Services
             _repository.UpdateUser(id, newUserName, newPhone, newEmail);
             return "";
         }
+        
+        public UserDTO CreateUser(UserDTO user)
+        {
+            if(user == null)
+            {
+                return null;
+            }
+
+            _repository.CreateUser(user);
+
+            return user;
+
+        }
 
         public List<OrderDTO>? GetUserOrders(Guid userId)
         {

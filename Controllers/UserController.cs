@@ -16,6 +16,17 @@ namespace Closetly.Controllers
             _userService = userService;
         }
 
+        //criar usuario
+        [HttpPost]
+        public IActionResult CreateUser([FromBody] UserDTO user)
+        {
+            _userService.CreateUser(user);
+
+            return Ok();
+        }
+
+        //updateUser ---- Gessica
+
         [HttpPatch("{id}/update", Name = "UpdateUser")]
         public IActionResult UpdateUser([FromRoute] Guid id, [FromBody] UpdateUserRequest request)
         {

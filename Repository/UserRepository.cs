@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Closetly.DTO;
 using Closetly.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,6 +40,18 @@ namespace Closetly.Repository
             var orders = _context.TbOrders.Where(o => o.UserId == userId).ToList();
             
             return orders;
+        }
+
+        public void CreateUser (UserDTO user)
+        {
+            TbUser newUser = new TbUser();
+
+            newUser.UserName = user.UserName;
+            newUser.Phone = user.Phone;
+            newUser.Email = user.Email;
+
+            _context.TbUsers.Add(newUser);
+            _context.SaveChanges();
         }
         
     }
