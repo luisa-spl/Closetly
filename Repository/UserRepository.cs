@@ -35,10 +35,40 @@ namespace Closetly.Repository
             _context.SaveChanges();
         }
 
-        public List<TbOrder> GetUserOrders(Guid userId)
+        public List<UserOrders> GetUserOrders(Guid userId)
         {
-            var orders = _context.TbOrders.Where(o => o.UserId == userId).ToList();
-            
+            var orders = _context.TbOrders
+                    .AsNoTracking()
+                    .Where(o => o.UserId == userId)
+                    .OrderByDescending(o => o.OrderedAt)
+                    .Select(o => new UserOrders
+                    {
+                        OrderId = o.OrderId,
+                        OrderedAt = o.OrderedAt,
+                        ReturnDate = o.ReturnDate,
+                        OrderStatus = o.OrderStatus,
+                        OrderTotalItems = o.OrderTotalItems,
+
+                        UserId = o.UserId,
+                        UserName = o.User.UserName,
+
+                        Products = o.TbOrderProducts.Select(op => new OrderProduct
+                        {
+                            ProductId = op.ProductId,
+                            ProductType = op.Product.ProductType,
+                            Quantity = op.Quantity
+                        }).ToList(),
+
+                        Payments = o.TbPayments.Select(p => new OrderPayment
+                        {
+                            PaymentId = p.PaymentId,
+                            PaymentType = p.PaymentType,
+                            PaymentValue = p.PaymentValue,
+                            PaymentStatus = p.PaymentStatus
+                        }).ToList()
+                    })
+                    .ToList();
+
             return orders;
         }
 

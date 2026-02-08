@@ -12,6 +12,6 @@ namespace Closetly.Services.Interface
     {
         public string UpdateUser(Guid id, string newUserName, string newPhone, string newEmail);
         public UserDTO CreateUser(UserDTO user); //cria��o de usu�rio       
-        public List<OrderDTO>? GetUserOrders(Guid userId);
+        public List<UserOrders>? GetUserOrders(Guid userId);
     }
 }

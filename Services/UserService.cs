@@ -44,7 +44,7 @@ namespace Closetly.Services
 
         }
 
-        public List<OrderDTO>? GetUserOrders(Guid userId)
+        public List<UserOrders>? GetUserOrders(Guid userId)
         {
             TbUser? user = _repository.GetById(userId);
             if(user == null)
@@ -52,19 +52,7 @@ namespace Closetly.Services
                 return null;
             }
 
-            List<TbOrder> orders = _repository.GetUserOrders(userId);
-
-            List<OrderDTO> orderDTOs = orders.Select(o => new OrderDTO
-            {
-                OrderId = o.OrderId,
-                UserId = o.UserId,
-                OrderedAt = o.OrderedAt,
-                ReturnDate = o.ReturnDate,
-                OrderStatus = o.OrderStatus,
-                OrderTotalItems = o.OrderTotalItems
-            }).ToList();
-            
-            return orderDTOs;
+            return _repository.GetUserOrders(userId);
         }
     }
 }

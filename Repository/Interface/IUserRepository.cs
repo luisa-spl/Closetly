@@ -11,7 +11,7 @@ namespace Closetly.Repository
     {
         public void CreateUser(UserDTO user);
         public TbUser? GetById(Guid id);
-        public List<TbOrder> GetUserOrders(Guid userId);
+        public List<UserOrders> GetUserOrders(Guid userId);
         public void UpdateUser(Guid id, string newUserName, string newPhone, string newEmail);
     }
 }
