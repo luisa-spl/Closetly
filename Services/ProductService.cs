@@ -22,6 +22,15 @@ namespace Closetly.Services
         {
             return _repository.GetAvailableProducts();
         }
+
+        public void CreateProduct(ProductDTO product)
+        {
+            if(product == null)
+            {
+                throw new ArgumentException("Produto não pode ser nulo");
+            }
+            _repository.CreateProduct(product);
+        }
     }
 
 
