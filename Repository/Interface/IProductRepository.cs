@@ -9,5 +9,6 @@ namespace Closetly.Repository.Interface
     public interface IProductRepository
     {
         public List<ProductDTO> GetAvailableProducts();
+        public void CreateProduct(ProductDTO product);
     }
 }
