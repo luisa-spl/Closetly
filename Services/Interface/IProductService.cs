@@ -10,5 +10,6 @@ namespace Closetly.Services.Interface
     {
         public void CreateProduct(ProductDTO product);
         public List<ProductDTO> GetAvailableProducts();
+        public Task<bool> UpdateProduct(Guid productId, UpdateProductDTO product);
     }
 }
