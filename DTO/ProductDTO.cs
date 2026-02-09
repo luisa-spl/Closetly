@@ -21,4 +21,15 @@ namespace Closetly.DTO
 
         public decimal ProductValue { get; set; }
     }
+
+    public class ProductFilters
+    {
+        public string? ProductColor { get; set; }
+
+        public string? ProductSize { get; set; } 
+
+        public string? ProductType { get; set; } 
+
+        public string? ProductOccasion { get; set; } 
+    }
 }
