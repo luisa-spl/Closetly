@@ -18,9 +18,9 @@ namespace Closetly.Services
             _repository = productRepository;
         }
 
-        public List<ProductDTO> GetAvailableProducts()
+        public List<ProductDTO> GetAvailableProducts(ProductFilters filters)
         {
-            return _repository.GetAvailableProducts();
+            return _repository.GetAvailableProducts(filters);
         }
 
         public void CreateProduct(ProductDTO product)

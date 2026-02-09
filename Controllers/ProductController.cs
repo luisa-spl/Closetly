@@ -30,9 +30,9 @@ namespace Closetly.Controllers
         }
 
         [HttpGet("available", Name = "GetAvailableProducts")]
-        public IActionResult GetAvailableProducts()
+        public IActionResult GetAvailableProducts([FromQuery] ProductFilters filters)
         {
-            var products = _productService.GetAvailableProducts();
+            var products = _productService.GetAvailableProducts(filters);
             return Ok(products);
         }
 
