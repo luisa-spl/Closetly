@@ -9,6 +9,6 @@ namespace Closetly.Services.Interface
     public interface IProductService
     {
         public void CreateProduct(ProductDTO product);
-        public List<ProductDTO> GetAvailableProducts();
+        public List<ProductDTO> GetAvailableProducts(ProductFilters filters);
     }
 }
