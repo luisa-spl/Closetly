@@ -12,4 +12,11 @@ namespace Closetly.DTO
 
         public int Rate { get; set; }
     }
+
+    public class RatingCreateDTO
+    {
+        public Guid OrderId { get; set; }
+
+        public int Rate { get; set; }
+    }
 }

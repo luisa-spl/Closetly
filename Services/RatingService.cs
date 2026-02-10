@@ -1,4 +1,4 @@
-﻿using Closetly.DTO;
+﻿ using Closetly.DTO;
 using Closetly.Repository;
 using Closetly.Repository.Interface;
 using Closetly.Services.Interface;
@@ -13,7 +13,7 @@ namespace Closetly.Services
         {
             _repository = ratingRepository;
         }
-        public void CreateRating(RatingDTO rating)
+        public void CreateRating(RatingCreateDTO rating)
         {
             _repository.CreateRating(rating);
         }

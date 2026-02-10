@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Closetly.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class RatingController : ControllerBase
     {
@@ -16,7 +16,7 @@ namespace Closetly.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateRating([FromBody] RatingDTO rating)
+        public IActionResult CreateRating([FromBody] RatingCreateDTO rating)
         {
             _ratingService.CreateRating(rating);
             return Ok();

@@ -12,11 +12,12 @@ namespace Closetly.Repository
         {
             _context = context;
         }
-        public void CreateRating(RatingDTO rating)
+        public void CreateRating(RatingCreateDTO rating)
         {
             TbRating newRating = new TbRating();
+            newRating.OrderId = rating.OrderId;
             newRating.Rate = rating.Rate;
-            newRating.CreatedAt = rating.CreatedAt;
+            _context.TbRatings.Add(newRating);
             _context.SaveChanges();
         }
     }
