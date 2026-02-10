@@ -14,8 +14,8 @@ public class OrderRepository : IOrderRepository
         _context = context;
     }
 
-    public async Task<TbOrder?> GetOrderById(Guid id)
+    public TbOrder? GetOrderById(Guid id)
     {
-        return await _context.TbOrders.FindAsync(id);
+        return _context.TbOrders.Find(id);
     }
 }
