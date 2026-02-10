@@ -16,10 +16,23 @@ namespace Closetly.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateRating([FromBody] RatingCreateDTO rating)
+        public async Task<IActionResult> CreateRating([FromBody] RatingCreateDTO rating)
         {
-            _ratingService.CreateRating(rating);
-            return Ok();
+            try
+            {
+                await _ratingService.CreateRating(rating);
+
+                return Ok();
+            }
+            catch (InvalidOperationException error) 
+            { 
+                if (error.Message.Contains("encontrado"))
+                {
+                    return NotFound(error.Message);
+                }
+
+                return BadRequest(error.Message);
+            }
         }
     }
 }

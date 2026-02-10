@@ -4,7 +4,7 @@ namespace Closetly.Services.Interface
 {
     public interface IRatingService
     {
-        public void CreateRating(RatingCreateDTO rating);
+        public Task CreateRating(RatingCreateDTO rating);
 
     }
 }

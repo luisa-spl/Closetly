@@ -4,6 +4,6 @@ namespace Closetly.Repository.Interface
 {
     public interface IRatingRepository
     {
-        public void CreateRating(RatingCreateDTO rating);
+        public Task CreateRating(RatingCreateDTO rating);
     }
 }
