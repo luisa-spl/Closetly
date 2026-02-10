@@ -6,6 +6,7 @@ using Closetly.Repository.Interface;
 using Closetly.Models;
 using Microsoft.EntityFrameworkCore;
 using Closetly.DTO;
+using System.Runtime.CompilerServices;
 
 namespace Closetly.Repository
 {
@@ -52,6 +53,11 @@ namespace Closetly.Repository
     }
 
 
+        public async Task<TbProduct?> GetProductById(Guid id)
+        {
+            return await _context.TbProducts.FindAsync(id);
+        }
+
         public void CreateProduct(ProductDTO product)
         {
             TbProduct newProduct = new TbProduct
@@ -67,5 +73,12 @@ namespace Closetly.Repository
             _context.TbProducts.Add(newProduct);
             _context.SaveChanges();
         }
+
+        public async Task UpdateProduct(TbProduct product)
+        {
+            _context.TbProducts.Update(product);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

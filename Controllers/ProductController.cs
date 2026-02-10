@@ -35,5 +35,20 @@ namespace Closetly.Controllers
             var products = _productService.GetAvailableProducts(filters);
             return Ok(products);
         }
+
+        [HttpPatch("{id}", Name = "UpdateProduct")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+
+        public async Task<IActionResult> UpdateProduct([FromRoute] Guid id, [FromBody] UpdateProductDTO product)
+        {
+            var updated = await _productService.UpdateProduct(id, product);
+
+            if (!updated)
+            {
+                return NotFound(new { message = "Produto não encontrado" });
+            }
+
+            return NoContent();
+        }
     }
 }
