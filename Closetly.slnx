@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="../Closetly.Tests/Closetly.Tests.csproj" Id="7f8519e8-668b-4f48-8716-2b366b83ff8b" />
   <Project Path="Closetly.csproj" />
 </Solution>
