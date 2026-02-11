@@ -362,5 +362,3 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 appsettings.Development.json
-Closetly.csproj
-appsettings.Development.json
