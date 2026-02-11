@@ -62,5 +62,11 @@ namespace Closetly.Controllers
             }
             return Ok(orders);
         }
+
+        //rating
+
+
+        
     }
+
 }

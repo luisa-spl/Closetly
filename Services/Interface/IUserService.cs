@@ -10,7 +10,7 @@ namespace Closetly.Services.Interface
     public interface IUserService
     {
         public string UpdateUser(Guid id, string newUserName, string newPhone, string newEmail);
-        public UserDTO CreateUser(UserDTO user); //cria��o de usu�rio       
+        public UserDTO CreateUser(UserDTO user); //criacao de usuario       
         public List<UserOrders>? GetUserOrders(Guid userId);
     }
 }
