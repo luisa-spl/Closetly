@@ -63,9 +63,12 @@ namespace Closetly.Controllers
             return Ok(orders);
         }
 
-        //rating
-
-
+        [HttpGet("all", Name = "GetAllUsers")]
+        public IActionResult GetAllUsers()
+        {
+            var users = _userService.GetUsers();
+            return Ok(users);
+        }
         
     }
 

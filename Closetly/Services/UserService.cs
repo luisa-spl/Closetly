@@ -54,5 +54,17 @@ namespace Closetly.Services
 
             return _repository.GetUserOrders(userId);
         }
+
+        public List<UserDTO> GetUsers()
+        {
+            var users = _repository.GetUsers();
+            return users.Select(u => new UserDTO
+            {
+                Id = u.UserId,
+                UserName = u.UserName,
+                Phone = u.Phone,
+                Email = u.Email
+            }).ToList();
+        }
     }
 }

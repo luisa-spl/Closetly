@@ -83,6 +83,11 @@ namespace Closetly.Repository
             _context.TbUsers.Add(newUser);
             _context.SaveChanges();
         }
+
+        public List<TbUser> GetUsers()
+        {
+            return _context.TbUsers.ToList();
+        }
         
     }
 }
