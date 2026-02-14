@@ -32,11 +32,14 @@ namespace Closetly.Services
             _repository.CreateProduct(product);
         }
 
-        public async Task<bool> UpdateProduct(Guid productId, UpdateProductDTO product)
+        public async Task UpdateProduct(Guid productId, UpdateProductDTO product)
         {
             var existingProduct = await _repository.GetProductById(productId);
 
-            if (existingProduct == null) return false;
+            if (existingProduct == null)
+            {
+                throw new InvalidOperationException("Produto não encontrado.");
+            }
 
             if (product.ProductValue.HasValue) existingProduct.ProductValue = product.ProductValue.Value;
             if (product.ProductStatus != null) existingProduct.ProductStatus = product.ProductStatus;
@@ -45,11 +48,26 @@ namespace Closetly.Services
             if (product.ProductOccasion != null) existingProduct.ProductOccasion = product.ProductOccasion;
             if (product.ProductSize != null) existingProduct.ProductSize = product.ProductSize;
 
-            _repository.UpdateProduct(existingProduct);
-            return true;
+            await _repository.UpdateProduct(existingProduct);
         }
 
+        public async Task DeleteProduct(Guid productId)
+        {
+            var existingProduct = await _repository.GetProductById(productId);
+
+            if (existingProduct == null) 
+            {
+                throw new InvalidOperationException("Produto não encontrado.");
+            }
+
+            if (existingProduct.ProductStatus == "deleted")
+            {
+                throw new InvalidOperationException("O produto já foi deletado.");
+            }
+
+            existingProduct.ProductStatus = "deleted";
+
+            await _repository.DeleteProduct(existingProduct);
+        }
     }
-
-
 }

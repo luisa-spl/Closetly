@@ -13,5 +13,7 @@ namespace Closetly.Repository.Interface
         public Task<TbProduct?> GetProductById(Guid id);
         public void CreateProduct(ProductDTO product);
         public Task UpdateProduct(TbProduct product);
+        public Task DeleteProduct(TbProduct product);
+
     }
 }

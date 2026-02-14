@@ -9,7 +9,9 @@ namespace Closetly.Services.Interface
     public interface IProductService
     {
         public void CreateProduct(ProductDTO product);
-        public Task<bool> UpdateProduct(Guid productId, UpdateProductDTO product);
+        public Task UpdateProduct(Guid productId, UpdateProductDTO product);
         public List<ProductDTO> GetAvailableProducts(ProductFilters filters);
+        public Task DeleteProduct(Guid productId);
+
     }
 }
