@@ -41,14 +41,59 @@ namespace Closetly.Controllers
 
         public async Task<IActionResult> UpdateProduct([FromRoute] Guid id, [FromBody] UpdateProductDTO product)
         {
-            var updated = await _productService.UpdateProduct(id, product);
-
-            if (!updated)
+            try
             {
-                return NotFound(new { message = "Produto não encontrado" });
-            }
+                await _productService.UpdateProduct(id, product);
+                return NoContent();
 
-            return NoContent();
+            }
+            catch (InvalidOperationException error)
+            {
+               
+                return NotFound(error.Message);
+                
+            }
+            catch (Exception ex)
+            {
+                var problemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Erro interno do servidor",
+                    Detail = ex.Message
+                };
+                return StatusCode(StatusCodes.Status500InternalServerError, problemDetails);
+            }
+        }
+
+
+        [HttpDelete("{id}", Name = "DeleteProduct")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> DeleteProduct([FromRoute] Guid id) 
+        {
+            try
+            {
+                await _productService.DeleteProduct(id);
+                return NoContent();
+            }
+            catch (InvalidOperationException error)
+            {
+                if (error.Message.Contains("encontrado"))
+                {
+                    return NotFound(error.Message);
+                }
+
+                return Conflict(error.Message);
+            }
+            catch (Exception ex)
+            {
+                var problemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Erro interno do servidor",
+                    Detail = ex.Message
+                };
+                return StatusCode(StatusCodes.Status500InternalServerError, problemDetails);
+            }
         }
     }
 }
