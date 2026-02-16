@@ -18,11 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="NUnit.Framework" />
+    <ProjectReference Include="..\Closetly\Closetly.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Closetly\Closetly.csproj" />
+    <Using Include="NUnit.Framework" />
   </ItemGroup>
 
 </Project>
