@@ -1,0 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Closetly.DTO;
+
+namespace Closetly.Repository.Interface
+{
+    public interface IPaymentRepository
+    {
+        public void PayOrder(PaymentDTO payment);
+    }
+}
