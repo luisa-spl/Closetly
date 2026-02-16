@@ -20,11 +20,27 @@ namespace Closetly.Controllers
         }
         
         [HttpPost]
-        public IActionResult PayOrder([FromBody] PaymentDTO payment)
+        public async Task<IActionResult> PayOrder([FromBody] PaymentDTO payment, CancellationToken cancellationToken)
         {
-            _paymentService.PayOrder(payment);
+            try
+            {
+                await _paymentService.PayOrder(payment, cancellationToken);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { error = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { error = "Erro interno ao processar pagamento." });
+            }
+            
+            return Ok(new { message = "Pagamento registrado com sucesso." });
 
-            return Ok();
         }
     }
 }

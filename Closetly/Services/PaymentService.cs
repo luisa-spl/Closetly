@@ -17,9 +17,21 @@ namespace Closetly.Services
             _repository = paymentRepository;
         }
 
-        public void PayOrder(PaymentDTO payment)
+        public async Task PayOrder(PaymentDTO payment, CancellationToken ct)
         {
-            _repository.PayOrder(payment);
+            if (payment == null) throw new ArgumentException("Payload inválido.");
+            if (payment.OrderId == Guid.Empty) throw new ArgumentException("OrderId inválido.");
+            if (payment.PaymentValue <= 0) throw new ArgumentException("PaymentValue deve ser maior que zero.");
+
+            try
+            {
+                await _repository.PayOrder(payment, ct);
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+            {
+                // FK, unique constraint, etc.
+                throw new InvalidOperationException("Não foi possível registrar o pagamento. Verifique o pedido e os dados informados.");
+            }
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Closetly.Repository
         }
 
 
-        public void PayOrder(PaymentDTO payment)
+        public async Task PayOrder(PaymentDTO payment, CancellationToken ct)
         {
             _context.TbPayments.Add(new TbPayment
             {
@@ -27,7 +27,7 @@ namespace Closetly.Repository
                 PaymentValue = payment.PaymentValue,
                 PaymentStatus = payment.PaymentStatus
             });
-            _context.SaveChanges();
+            await _context.SaveChangesAsync(ct);
         }
     }
 }
