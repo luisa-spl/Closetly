@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,12 +8,15 @@ namespace Closetly.DTO
 {
     public class PaymentDTO
     {
-        public Guid OrderId { get; set; }
+        public required Guid OrderId { get; set; }
 
-        public string PaymentType { get; set; } = null!;
+        [Required]
+        public required string PaymentType { get; set; }
 
-        public decimal PaymentValue { get; set; }
-
-        public string PaymentStatus { get; set; } = null!;    
+        [Required]
+        public required decimal PaymentValue { get; set; }
+        
+        [Required]
+        public required string PaymentStatus { get; set; }  
     }
 }
