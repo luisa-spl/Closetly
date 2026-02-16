@@ -16,16 +16,22 @@ namespace Closetly.Controllers
             _userService = userService;
         }
 
-        //criar usuario
         [HttpPost]
         public IActionResult CreateUser([FromBody] UserDTO user)
         {
-            _userService.CreateUser(user);
-
-            return Ok();
+            var createdUser = _userService.CreateUser(user);
+            if(createdUser == null)
+            {
+                ProblemDetails problemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Erro ao criar usuário",
+                    Detail = "Não foi possível criar o usuário.",
+                };
+                return BadRequest(problemDetails);
+            }
+            return Ok(createdUser);
         }
-
-        //updateUser ---- Gessica
 
         [HttpPatch("{id}/update", Name = "UpdateUser")]
         public IActionResult UpdateUser([FromRoute] Guid id, [FromBody] UpdateUserRequest request)

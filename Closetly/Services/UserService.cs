@@ -31,7 +31,7 @@ namespace Closetly.Services
             return "";
         }
         
-        public UserDTO CreateUser(UserDTO user)
+        public UserDTO? CreateUser(UserDTO user)
         {
             if(user == null)
             {
@@ -41,7 +41,6 @@ namespace Closetly.Services
             _repository.CreateUser(user);
 
             return user;
-
         }
 
         public List<UserOrders>? GetUserOrders(Guid userId)
