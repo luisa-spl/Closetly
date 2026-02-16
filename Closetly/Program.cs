@@ -25,6 +25,9 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
