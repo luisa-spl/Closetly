@@ -36,20 +36,19 @@ namespace Closetly.Controllers
         [HttpPatch("{id}/update", Name = "UpdateUser")]
         public IActionResult UpdateUser([FromRoute] Guid id, [FromBody] UpdateUserRequest request)
         {
-            string error = _userService.UpdateUser(id, request.Name, request.Phone, request.Email);
+            string error = _userService.UpdateUser(id, request);
 
-            if(error == "Usuário não encontrado")
+            if (error != "")
             {
                 ProblemDetails problemDetails = new ProblemDetails
                 {
                     Status = StatusCodes.Status400BadRequest,
                     Title = "Usuário não existe na base de dados",
-                    Detail = "Usuário não foi encontrado para o id informado",
+                    Detail = error,
                 };
-                return BadRequest(problemDetails);
-            }
-
-            return Ok();
+                return BadRequest(problemDetails);                
+            }     
+            return NoContent();
         }
 
         [HttpGet("{userId}/orders", Name = "GetUserOrders")]

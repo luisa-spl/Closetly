@@ -23,15 +23,9 @@ namespace Closetly.Repository
             return user;
         }
 
-        public void UpdateUser(Guid id, string newUserName, string newPhone, string newEmail)
+        public void UpdateUser(TbUser user)
         {
-            TbUser? foundUser = _context.TbUsers.Find(id);
-            if (foundUser is null)
-                throw new InvalidOperationException($"User with id {id} not found.");
-
-            foundUser.UserName = newUserName;
-            foundUser.Phone = newPhone;
-            foundUser.Email = newEmail;
+            _context.TbUsers.Update(user);
             _context.SaveChanges();
         }
 
