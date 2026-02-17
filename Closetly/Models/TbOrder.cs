@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Closetly.Models;
 
@@ -16,6 +17,9 @@ public partial class TbOrder
     public string OrderStatus { get; set; } = null!;
 
     public int? OrderTotalItems { get; set; }
+
+    [Column("order_total_value")]
+    public decimal OrderTotalValue { get; set; }
 
     public virtual ICollection<TbOrderProduct> TbOrderProducts { get; set; } = new List<TbOrderProduct>();
 
