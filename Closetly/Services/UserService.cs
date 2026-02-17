@@ -19,19 +19,26 @@ namespace Closetly.Services
             _repository = userRepository;
         }
 
-        public string UpdateUser(Guid id, string newUserName, string newPhone, string newEmail)
+        public string UpdateUser(Guid id, UpdateUserRequest request)
         {
-            TbUser? user = _repository.GetById(id);
-            if(user == null)
-            {
-                return "Usuário não encontrado";
-            }
+            TbUser? foundUser = _repository.GetById(id);
+            if (foundUser is null)
+                return $"Usuário com a id {id} não encontrado.";
 
-            _repository.UpdateUser(id, newUserName, newPhone, newEmail);
+            if (request.Name != null)
+                foundUser.UserName = request.Name;
+
+            if (request.Phone != null)
+                foundUser.Phone = request.Phone;
+
+            if (request.Email != null)
+                foundUser.Email = request.Email;
+
+            _repository.UpdateUser(foundUser);
             return "";
         }
         
-        public UserDTO CreateUser(UserDTO user)
+        public UserDTO? CreateUser(UserDTO user)
         {
             if(user == null)
             {
@@ -41,7 +48,6 @@ namespace Closetly.Services
             _repository.CreateUser(user);
 
             return user;
-
         }
 
         public List<UserOrders>? GetUserOrders(Guid userId)

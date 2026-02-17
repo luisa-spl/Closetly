@@ -9,8 +9,8 @@ namespace Closetly.Services.Interface
 {
     public interface IUserService
     {
-        public string UpdateUser(Guid id, string newUserName, string newPhone, string newEmail);
-        public UserDTO CreateUser(UserDTO user); //criacao de usuario       
+        public string UpdateUser(Guid id, UpdateUserRequest request);
+        public UserDTO? CreateUser(UserDTO user);    
         public List<UserOrders>? GetUserOrders(Guid userId);
         public List<UserDTO> GetUsers();
     }
