@@ -16,7 +16,5 @@ namespace Closetly.DTO
         [Required]
         public required decimal PaymentValue { get; set; }
         
-        [Required]
-        public required string PaymentStatus { get; set; }  
     }
 }
