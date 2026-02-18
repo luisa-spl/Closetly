@@ -62,4 +62,54 @@ public class OrderControllerTest
         Assert.That(problemDetails.Title, Is.EqualTo("Conflito"));
         Assert.That(problemDetails.Detail, Is.EqualTo(errorMessage));
     }
+
+    [Test]
+    public async Task CancelOrder_ShouldReturn204NoContent_WhenCancelIsSuccessful()
+    {
+        var orderId = Guid.NewGuid();
+
+        _orderServiceMock
+            .Setup(x => x.CancelOrder(orderId))
+            .Returns(Task.CompletedTask);
+
+        var result = await _controller.CancelOrder(orderId);
+
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+    }
+
+    [Test]
+    public async Task CancelOrder_ShouldReturn404NotFound_WhenOrderIsNotFound()
+    {
+        var orderId = Guid.NewGuid();
+        var errorMessage = $"Pedido com Id '{orderId}' não encontrado";
+
+        _orderServiceMock
+            .Setup(x => x.CancelOrder(orderId))
+            .ThrowsAsync(new InvalidOperationException(errorMessage));
+
+        var result = await _controller.CancelOrder(orderId);
+
+        Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
+        var objectResult = result as NotFoundObjectResult;
+        Assert.That(objectResult.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
+        Assert.That(objectResult.Value, Is.EqualTo(errorMessage));
+    }
+
+    [Test]
+    public async Task CancelOrder_ShouldReturn409Conflict_WhenOrderIsNotPending()
+    {
+        var orderId = Guid.NewGuid();
+        var errorMessage = $"Pedido com Id '{orderId}' não pode ser cancelado pois já foi pago e/ou está concluido";
+
+        _orderServiceMock
+            .Setup(x => x.CancelOrder(orderId))
+            .ThrowsAsync(new InvalidOperationException(errorMessage));
+
+        var result = await _controller.CancelOrder(orderId);
+
+        Assert.That(result, Is.InstanceOf<ConflictObjectResult>());
+        var objectResult = result as ConflictObjectResult;
+        Assert.That(objectResult.StatusCode, Is.EqualTo(StatusCodes.Status409Conflict));
+        Assert.That(objectResult.Value, Is.EqualTo(errorMessage));
+    }
 }

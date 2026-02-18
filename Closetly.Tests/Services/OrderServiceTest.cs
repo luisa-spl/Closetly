@@ -133,4 +133,74 @@ internal class OrderServiceTest
             orderParaSalvar.OrderStatus == "PENDING"
         )), Times.Once);
     }
+
+    [Test]
+    public void CancelOrder_ShouldThrowException_WhenOrderIsNotFound()
+    {
+        var orderId = Guid.NewGuid();
+
+        _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync((TbOrder)null);
+
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.CancelOrder(orderId));
+
+        Assert.That(ex.Message, Does.Contain($"Pedido com Id '{orderId}' não encontrado"));
+       
+        _orderRepositoryMock.Verify(x => x.CancelOrder(It.IsAny<TbOrder>()), Times.Never);
+    }
+
+    [Test]
+    public void CancelOrder_ShouldThrowException_WhenOrderStatusIsNotPending()
+    {
+        var orderId = Guid.NewGuid();
+        var mockOrder = new TbOrder
+        {
+            OrderId = orderId,
+            OrderStatus = "LEASED"
+        };
+
+        _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync(mockOrder);
+
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.CancelOrder(orderId));
+
+        Assert.That(ex.Message, Does.Contain("não pode ser cancelado pois já foi pago"));
+        _orderRepositoryMock.Verify(x => x.CancelOrder(It.IsAny<TbOrder>()), Times.Never);
+    }
+
+    [Test]
+    public async Task CancelOrder_ShouldCancelOrder_WhenOrderIsValidAndPending()
+    {
+        var orderId = Guid.NewGuid();
+        var product1Id = Guid.NewGuid();
+        var product2Id = Guid.NewGuid();
+
+        var product1 = new TbProduct { ProductId = product1Id, ProductStatus = "UNAVAILABLE" };
+        var product2 = new TbProduct { ProductId = product2Id, ProductStatus = "UNAVAILABLE" };
+
+        _productRepositoryMock
+        .Setup(x => x.GetProductById(product1Id))
+        .ReturnsAsync(product1);
+
+        _productRepositoryMock
+            .Setup(x => x.GetProductById(product2Id))
+            .ReturnsAsync(product2);
+
+        var mockOrder = new TbOrder
+        {
+            OrderId = orderId,
+            OrderStatus = "PENDING",
+            TbOrderProducts = new List<TbOrderProduct>
+            {
+                new TbOrderProduct { OrderId= orderId, ProductId = product1Id, Quantity = 1 },
+                new TbOrderProduct { OrderId= orderId, ProductId = product2Id, Quantity = 1 }
+            }
+        };
+
+        _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync(mockOrder);
+
+        await _service.CancelOrder(orderId);
+
+        Assert.That(mockOrder.OrderStatus, Is.EqualTo("CANCELLED"));
+
+        _orderRepositoryMock.Verify(x => x.CancelOrder(mockOrder), Times.Once);
+    }
 }
