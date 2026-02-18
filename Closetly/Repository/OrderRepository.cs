@@ -18,4 +18,11 @@ public class OrderRepository : IOrderRepository
     {
         return _context.TbOrders.Find(id);
     }
+
+    public async Task<TbOrder> CreateOrder(TbOrder order)
+    {
+        await _context.AddAsync(order);
+        await _context.SaveChangesAsync();
+        return order;
+    }
 }

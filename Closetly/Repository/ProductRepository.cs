@@ -86,5 +86,12 @@ namespace Closetly.Repository
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateProductStatus(TbProduct product, string status)
+        {
+            product.ProductStatus = status;
+            _context.TbProducts.Update(product);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }
