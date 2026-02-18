@@ -45,7 +45,7 @@ public static class OrderValidator
         return product;
     }
 
-    public static async Task ChangeManyProductsStatus(IProductRepository _productRepository, List<TbOrderProduct> orderProducts)
+    public static async Task ChangeManyProductsStatus(IProductRepository _productRepository, List<TbOrderProduct> orderProducts, string status)
     {
         foreach (var orderProduct in orderProducts)
         {
@@ -56,7 +56,7 @@ public static class OrderValidator
                 throw new InvalidOperationException($"Produto com Id: '{orderProduct.ProductId}' não encontrado");
             }
 
-            await _productRepository.UpdateProductStatus(product, "UNAVAILABLE");
+            await _productRepository.UpdateProductStatus(product, status);
         }
     }
 }

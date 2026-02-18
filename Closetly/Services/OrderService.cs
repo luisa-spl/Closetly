@@ -67,7 +67,7 @@ public class OrderService : IOrderService
             
         }
 
-        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts);
+        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, "UNAVAILABLE");
         newOrder.TbOrderProducts = orderProducts;
         newOrder.OrderTotalItems = orderProducts.Count();
         newOrder.OrderTotalValue = total;
@@ -75,5 +75,26 @@ public class OrderService : IOrderService
         var createdOrder = await _repository.CreateOrder(newOrder);
 
         return NewOrderMapper.MapToOrderResponseDTO(createdOrder);
+    }
+
+    public async Task CancelOrder(Guid orderId)
+    {
+        var order = await _repository.GetOrderWithProductsById(orderId);
+
+        if (order == null) {
+            throw new InvalidOperationException($"Pedido com Id '{orderId}' não encontrado");
+        }
+
+        if (order.OrderStatus != "PENDING")
+        {
+            throw new InvalidOperationException($"Pedido com Id '{orderId}' não pode ser cancelado pois já foi pago e/ou está concluido");
+        }
+
+        order.OrderStatus = "CANCELLED";
+        var orderProducts = order.TbOrderProducts.ToList();
+
+        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, "AVAILABLE");
+
+        await _repository.CancelOrder(order);
     }
 }
