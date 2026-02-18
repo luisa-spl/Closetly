@@ -18,16 +18,35 @@ namespace Closetly.Repository
         }
 
 
-        public async Task PayOrder(PaymentDTO payment, CancellationToken ct)
+        public async Task CreatePayment(PaymentDTO payment, CancellationToken ct)
         {
             _context.TbPayments.Add(new TbPayment
             {
                 OrderId = payment.OrderId,
                 PaymentType = payment.PaymentType,
                 PaymentValue = payment.PaymentValue,
-                PaymentStatus = payment.PaymentStatus
+                PaymentStatus = PaymentStatus.PENDING
             });
             await _context.SaveChangesAsync(ct);
+        }
+
+        public async Task PayOrder(PaymentDTO payment, CancellationToken ct)
+        {
+            var order = _context.TbOrders.Find(payment.OrderId);
+
+            if (order == null)
+                throw new Exception("Pedido não encontrado.");
+
+            order.OrderStatus = OrderStatus.LEASED;
+
+            var updatePayment = _context.TbPayments.FirstOrDefault(p => p.OrderId == payment.OrderId);
+            
+            if (updatePayment != null)
+            {
+                updatePayment.PaymentStatus = PaymentStatus.APPROVED;
+            }
+            await _context.SaveChangesAsync(ct);
+
         }
     }
 }
