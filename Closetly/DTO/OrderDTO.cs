@@ -25,6 +25,7 @@ namespace Closetly.DTO
         [AllowedValues(3, 7, 14, ErrorMessage = "O período de locação deve ser de 3, 7 ou 14 dias.")]
         public int ReturnPeriod { get; set; }
         [Required]
+        [MinLength(1, ErrorMessage = "O pedido deve conter pelo menos um produto.")]
         public List<OrderProductRequestDTO> Products { get; set; } = new();
     }
     public class OrderResponseDTO

@@ -36,7 +36,10 @@ internal class OrderServiceTest
         {
             UserId = Guid.NewGuid(),
             ReturnPeriod = 3,
-            Products = new List<OrderProductRequestDTO>()
+            Products = new List<OrderProductRequestDTO>
+            {
+                new OrderProductRequestDTO { ProductId = Guid.NewGuid(), Quantity = 1 }
+            }
         };
 
         _userRepositoryMock
@@ -48,6 +51,28 @@ internal class OrderServiceTest
         );
 
         Assert.That(result.Message, Does.Contain($"Usuário com Id '{requestDto.UserId}' não encontrado"));
+
+        _orderRepositoryMock.Verify(x => x.CreateOrder(It.IsAny<TbOrder>()), Times.Never);
+    }
+
+    [Test]
+    public void CreateOrder_ShouldThrowException_WhenProductsListIsEmpty()
+    {
+        var userId = Guid.NewGuid();
+        var requestDto = new OrderRequestDTO
+        {
+            UserId = userId,
+            ReturnPeriod = 3,
+            Products = new List<OrderProductRequestDTO>()
+        };
+
+        var validUser = new TbUser { UserId = userId };
+
+        _userRepositoryMock.Setup(x => x.GetById(userId)).Returns(validUser);
+
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOrder(requestDto));
+
+        Assert.That(ex.Message, Is.EqualTo("Você deve adicionar pelo menos 1 produto ao pedido"));
 
         _orderRepositoryMock.Verify(x => x.CreateOrder(It.IsAny<TbOrder>()), Times.Never);
     }
@@ -97,13 +122,10 @@ internal class OrderServiceTest
             .Setup(x => x.CreateOrder(It.IsAny<TbOrder>()))
             .ReturnsAsync(createdOrderFromDb);
 
-
         var result = await _service.CreateOrder(requestDto);
-
-      
+              
         Assert.That(result, Is.Not.Null);
-
-      
+              
         _orderRepositoryMock.Verify(x => x.CreateOrder(It.Is<TbOrder>(orderParaSalvar =>
             orderParaSalvar.UserId == userId &&
             orderParaSalvar.OrderTotalItems == 1 &&

@@ -31,6 +31,11 @@ public class OrderService : IOrderService
             throw new InvalidOperationException($"Usuário com Id '{order.UserId}' não encontrado");
         }
 
+        if (order.Products.Count == 0) 
+        {
+            throw new InvalidOperationException($"Você deve adicionar pelo menos 1 produto ao pedido");
+        }
+
         var dateNow = DateTime.UtcNow;
 
         var newOrder = new TbOrder
