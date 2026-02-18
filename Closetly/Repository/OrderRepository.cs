@@ -22,7 +22,7 @@ public class OrderRepository : IOrderRepository
 
     public async Task<TbOrder?> GetOrderWithProductsById(Guid id)
     {
-        return await _context.TbOrders.Include(o => o.TbOrderProducts).FirstOrDefaultAsync();
+        return await _context.TbOrders.Include(o => o.TbOrderProducts).ThenInclude(op => op.Product).FirstOrDefaultAsync(o => o.OrderId == id);
     }
 
     public async Task<TbOrder> CreateOrder(TbOrder order)

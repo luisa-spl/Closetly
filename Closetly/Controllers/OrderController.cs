@@ -77,7 +77,7 @@ namespace Closetly.Controllers
             }
         }
 
-        [HttpDelete("{id}", Name = "CancelOrder")]
+        [HttpPatch("{id}", Name = "CancelOrder")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> CancelOrder([FromRoute] Guid id)
         {

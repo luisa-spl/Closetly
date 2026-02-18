@@ -79,7 +79,7 @@ public class OrderService : IOrderService
 
     public async Task CancelOrder(Guid orderId)
     {
-        var order = await _repository.GetOrderWithProductsById(orderId);
+        var order =  await _repository.GetOrderWithProductsById(orderId);
 
         if (order == null) {
             throw new InvalidOperationException($"Pedido com Id '{orderId}' não encontrado");
