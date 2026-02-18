@@ -17,7 +17,7 @@ namespace Closetly.Services
             _repository = paymentRepository;
         }
 
-        public async Task PayOrder(PaymentDTO payment, CancellationToken ct)
+        public async Task CreatePayment(PaymentDTO payment, CancellationToken ct)
         {
             if (payment == null) throw new ArgumentException("Payload inválido.");
             if (payment.OrderId == Guid.Empty) throw new ArgumentException("OrderId inválido.");
@@ -25,13 +25,19 @@ namespace Closetly.Services
 
             try
             {
-                await _repository.PayOrder(payment, ct);
+                await _repository.CreatePayment(payment, ct);
+
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException)
             {
                 // FK, unique constraint, etc.
                 throw new InvalidOperationException("Não foi possível registrar o pagamento. Verifique o pedido e os dados informados.");
             }
+        }
+
+        public async Task PayOrder(PaymentDTO payment, CancellationToken ct)
+        {
+            await _repository.PayOrder(payment, ct);
         }
     }
 }
