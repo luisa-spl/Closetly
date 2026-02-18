@@ -1,4 +1,5 @@
 ﻿using Closetly.DTO;
+using Closetly.Services;
 using Closetly.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 
@@ -71,6 +72,36 @@ namespace Closetly.Controllers
                     Status = StatusCodes.Status500InternalServerError,
                     Title = "Erro interno do servidor",
                     Detail = error.Message
+                };
+                return StatusCode(StatusCodes.Status500InternalServerError, problemDetails);
+            }
+        }
+
+        [HttpDelete("{id}", Name = "CancelOrder")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> CancelOrder([FromRoute] Guid id)
+        {
+            try
+            {
+                await _orderService.CancelOrder(id);
+                return NoContent();
+            }
+            catch (InvalidOperationException error)
+            {
+                if (error.Message.Contains("encontrado"))
+                {
+                    return NotFound(error.Message);
+                }
+
+                return Conflict(error.Message);
+            }
+            catch (Exception ex)
+            {
+                var problemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Erro interno do servidor",
+                    Detail = ex.Message
                 };
                 return StatusCode(StatusCodes.Status500InternalServerError, problemDetails);
             }
