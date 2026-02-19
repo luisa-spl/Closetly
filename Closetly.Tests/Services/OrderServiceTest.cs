@@ -154,6 +154,8 @@ internal class OrderServiceTest
     ), Times.Once);
     }
 
+    // CANCEL ORDER
+
     [Test]
     public void CancelOrder_ShouldThrowException_WhenOrderIsNotFound()
     {
@@ -222,5 +224,202 @@ internal class OrderServiceTest
         Assert.That(mockOrder.OrderStatus, Is.EqualTo(OrderStatus.CANCELLED));
 
         _orderRepositoryMock.Verify(x => x.CancelOrder(mockOrder), Times.Once);
+    }
+
+    //RETURN ORDER
+
+    [Test]
+    public void ReturnOrder_ShouldThrowException_WhenOrderIsNotFound()
+    {        
+        var orderId = Guid.NewGuid();
+       
+        _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync((TbOrder)null);
+        
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.ReturnOrder(orderId));
+
+        Assert.That(ex.Message, Does.Contain($"Pedido com Id '{orderId}' não encontrado"));
+                
+        _orderRepositoryMock.Verify(x => x.UpdateOrder(It.IsAny<TbOrder>()), Times.Never);
+    }
+
+    [Test]
+    public void ReturnOrder_ShouldThrowException_WhenOrderIsAlreadyConcluded()
+    {        
+        var orderId = Guid.NewGuid();
+        var mockOrder = new TbOrder
+        {
+            OrderId = orderId,
+            OrderStatus = OrderStatus.CONCLUDED
+        };
+
+        _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync(mockOrder);
+       
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.ReturnOrder(orderId));
+
+        Assert.That(ex.Message, Does.Contain($"O pedido '{orderId}' já foi devolvido"));
+    }
+
+    [Test]
+    public void ReturnOrder_ShouldThrowException_WhenOrderIsCancelled()
+    {        
+        var orderId = Guid.NewGuid();
+        var mockOrder = new TbOrder
+        {
+            OrderId = orderId,
+            OrderStatus = OrderStatus.CANCELLED
+        };
+
+        _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync(mockOrder);
+      
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.ReturnOrder(orderId));
+
+        Assert.That(ex.Message, Does.Contain($"O pedido '{orderId}' está cancelado e não pode ser devolvido"));
+    }
+
+    [Test]
+    public async Task ReturnOrder_ShouldUpdateOrderAndProductStatus_WhenOrderIsValid()
+    {        
+        var orderId = Guid.NewGuid();
+        var productId = Guid.NewGuid();
+        
+        var mockProduct = new TbProduct
+        {
+            ProductId = productId,
+            ProductStatus = ProductStatus.UNAVAILABLE
+        };
+
+        var mockOrder = new TbOrder
+        {
+            OrderId = orderId,
+            OrderStatus = OrderStatus.LEASED,
+            TbOrderProducts = new List<TbOrderProduct>
+            {
+                new TbOrderProduct { ProductId = productId }
+            }
+        };
+                
+        _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync(mockOrder);
+
+        _productRepositoryMock.Setup(x => x.GetProductById(productId)).ReturnsAsync(mockProduct);
+        
+        await _service.ReturnOrder(orderId);
+
+        Assert.That(mockOrder.OrderStatus, Is.EqualTo(OrderStatus.CONCLUDED));
+                
+        _orderRepositoryMock.Verify(x => x.UpdateOrder(mockOrder), Times.Once);
+   
+        _productRepositoryMock.Verify(x => x.UpdateProductStatus(mockProduct, ProductStatus.AVAILABLE), Times.Once);
+    }
+
+    // GET USER ORDER REPORT
+
+    [Test]
+    public void GetUserOrderReport_ShouldThrowException_WhenUserIsNotFound()
+    {        
+        var userId = Guid.NewGuid();
+
+        _userRepositoryMock.Setup(x => x.GetById(userId)).Returns((TbUser)null);
+                
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.GetUserOrderReport(userId));
+
+        Assert.That(ex.Message, Does.Contain($"Usuário com Id '{userId}' não encontrado"));
+    }
+
+    [Test]
+    public async Task GetUserOrderReport_ShouldReturnCorrectReport_WhenUserHasOrders()
+    {        
+        var userId = Guid.NewGuid();
+        
+        _userRepositoryMock.Setup(x => x.GetById(userId)).Returns(new TbUser { UserId = userId });
+                
+        var mockOrders = new List<TbOrder>
+        {
+            new TbOrder { OrderId = Guid.NewGuid(), OrderTotalValue = 100.50m, TbOrderProducts = new List<TbOrderProduct>() },
+            new TbOrder { OrderId = Guid.NewGuid(), OrderTotalValue = 49.50m, TbOrderProducts = new List<TbOrderProduct>() }
+        };
+
+        _orderRepositoryMock.Setup(x => x.GetOrdersByUserId(userId)).ReturnsAsync(mockOrders);
+                
+        var result = await _service.GetUserOrderReport(userId);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.UserId, Is.EqualTo(userId));
+        Assert.That(result.TotalOrders, Is.EqualTo(2)); 
+        Assert.That(result.TotalSpent, Is.EqualTo(150.00m)); 
+        Assert.That(result.Orders.Count, Is.EqualTo(2)); 
+    }
+
+    [Test]
+    public async Task GetUserOrderReport_ShouldReturnEmptyReport_WhenUserHasNoOrders()
+    {        
+        var userId = Guid.NewGuid();
+
+        _userRepositoryMock.Setup(x => x.GetById(userId)).Returns(new TbUser { UserId = userId });
+
+        _orderRepositoryMock.Setup(x => x.GetOrdersByUserId(userId)).ReturnsAsync(new List<TbOrder>());
+       
+        var result = await _service.GetUserOrderReport(userId);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.TotalOrders, Is.EqualTo(0));
+        Assert.That(result.TotalSpent, Is.EqualTo(0m));
+        Assert.That(result.Orders, Is.Empty);
+    }
+
+    //GET USER REPORT CSV
+
+    [Test]
+    public async Task GetUserOrderReportCsv_ShouldReturnCsvString_WhenUserHasOrders()
+    {        
+        var userId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+        var productId = Guid.NewGuid();
+                
+        _userRepositoryMock.Setup(x => x.GetById(userId)).Returns(new TbUser { UserId = userId });
+
+        var mockOrders = new List<TbOrder>
+        {
+            new TbOrder
+            {
+                OrderId = orderId,
+                OrderedAt = new DateTime(2026, 1, 1, 12, 0, 0),
+                ReturnDate = new DateTime(2026, 1, 8, 12, 0, 0),
+                OrderStatus = OrderStatus.CONCLUDED,
+                OrderTotalItems = 1,
+                OrderTotalValue = 150.50m,
+                TbOrderProducts = new List<TbOrderProduct>
+                {
+                    new TbOrderProduct { ProductId = productId }
+                }
+            }
+        };
+
+        _orderRepositoryMock.Setup(x => x.GetOrdersByUserId(userId)).ReturnsAsync(mockOrders);
+                
+        var result = await _service.GetUserOrderReportCsv(userId);
+                
+        Assert.That(result, Is.Not.Null.And.Not.Empty);
+                
+        Assert.That(result, Does.Contain("OrderId,OrderedAt,ReturnDate,OrderStatus,TotalItems,TotalValue,ProductIds"));
+              
+        Assert.That(result, Does.Contain($"{orderId}"));
+        Assert.That(result, Does.Contain("2026-01-01 12:00:00"));
+        Assert.That(result, Does.Contain("150.50"));
+        Assert.That(result, Does.Contain($"{productId}")); 
+            
+        Assert.That(result, Does.Contain("Total de Pedidos,1"));
+        Assert.That(result, Does.Contain("Total Gasto,150.50"));
+    }
+
+    [Test]
+    public void GetUserOrderReportCsv_ShouldThrowException_WhenUserIsNotFound()
+    {        
+        var userId = Guid.NewGuid();
+
+        _userRepositoryMock.Setup(x => x.GetById(userId)).Returns((TbUser)null);
+              
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.GetUserOrderReportCsv(userId));
+
+        Assert.That(ex.Message, Does.Contain($"Usuário com Id '{userId}' não encontrado"));
     }
 }

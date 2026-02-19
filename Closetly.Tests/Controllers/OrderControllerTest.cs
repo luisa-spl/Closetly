@@ -4,6 +4,7 @@ using Closetly.Services.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System.Text;
 
 namespace Closetly.Tests.Controllers;
 
@@ -63,6 +64,8 @@ public class OrderControllerTest
         Assert.That(problemDetails.Detail, Is.EqualTo(errorMessage));
     }
 
+    //CANCEL ORDER
+
     [Test]
     public async Task CancelOrder_ShouldReturn204NoContent_WhenCancelIsSuccessful()
     {
@@ -111,5 +114,177 @@ public class OrderControllerTest
         var objectResult = result as ConflictObjectResult;
         Assert.That(objectResult.StatusCode, Is.EqualTo(StatusCodes.Status409Conflict));
         Assert.That(objectResult.Value, Is.EqualTo(errorMessage));
+    }
+
+    //RETURN ORDER
+
+    [Test]
+    public async Task ReturnOrder_ShouldReturn204NoContent_WhenReturnIsSuccessful()
+    {        
+        var orderId = Guid.NewGuid();
+
+        _orderServiceMock.Setup(x => x.ReturnOrder(orderId)).Returns(Task.CompletedTask);
+      
+        var result = await _controller.ReturnOrder(orderId);
+       
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+    }
+
+    [Test]
+    public async Task ReturnOrder_ShouldReturn404NotFound_WhenOrderDoesNotExist()
+    {        
+        var orderId = Guid.NewGuid();
+        var errorMessage = $"Pedido com Id '{orderId}' não encontrado";
+           
+        _orderServiceMock.Setup(x => x.ReturnOrder(orderId)).ThrowsAsync(new InvalidOperationException(errorMessage));
+
+        var result = await _controller.ReturnOrder(orderId);
+       
+        Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
+        var objectResult = result as NotFoundObjectResult;
+       
+        Assert.That(objectResult.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
+      
+        var problemDetails = objectResult.Value as ProblemDetails;
+        Assert.That(problemDetails, Is.Not.Null);
+        Assert.That(problemDetails.Title, Is.EqualTo("Não Encontrado"));
+        Assert.That(problemDetails.Detail, Is.EqualTo(errorMessage));
+    }
+
+    [Test]
+    public async Task ReturnOrder_ShouldReturn400BadRequest_WhenOrderCannotBeReturned()
+    {       
+        var orderId = Guid.NewGuid();        
+        var errorMessage = $"O pedido '{orderId}' já foi devolvido";
+
+             _orderServiceMock
+            .Setup(x => x.ReturnOrder(orderId)).ThrowsAsync(new InvalidOperationException(errorMessage));
+
+       var result = await _controller.ReturnOrder(orderId);
+       
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
+        var objectResult = result as BadRequestObjectResult;
+       
+        Assert.That(objectResult.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
+
+        var problemDetails = objectResult.Value as ProblemDetails;
+        Assert.That(problemDetails, Is.Not.Null);
+        Assert.That(problemDetails.Title, Is.EqualTo("Solicitação Inválida"));
+        Assert.That(problemDetails.Detail, Is.EqualTo(errorMessage));
+    }
+
+    //GET USER ORDER REPORT
+
+    [Test]
+    public async Task GetUserOrderReport_ShouldReturn200Ok_WhenReportIsGenerated()
+    {        
+        var userId = Guid.NewGuid();
+        var expectedReport = new UserOrderReportDTO
+        {
+            UserId = userId,
+            TotalOrders = 1,
+            TotalSpent = 100m
+        };
+
+        _orderServiceMock.Setup(x => x.GetUserOrderReport(userId)).ReturnsAsync(expectedReport);
+             
+        var result = await _controller.GetUserOrderReport(userId);
+        
+        Assert.That(result, Is.InstanceOf<OkObjectResult>());
+        var okResult = result as OkObjectResult;
+        Assert.That(okResult.StatusCode, Is.EqualTo(StatusCodes.Status200OK));
+        Assert.That(okResult.Value, Is.EqualTo(expectedReport));
+    }
+
+    [Test]
+    public async Task GetUserOrderReport_ShouldReturn404NotFound_WhenUserDoesNotExist()
+    {        
+        var userId = Guid.NewGuid();
+        var errorMessage = $"Usuário com Id '{userId}' não encontrado";
+               
+        _orderServiceMock.Setup(x => x.GetUserOrderReport(userId)).ThrowsAsync(new InvalidOperationException(errorMessage));
+
+        var result = await _controller.GetUserOrderReport(userId);
+
+        Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
+        var notFoundResult = result as NotFoundObjectResult;
+        Assert.That(notFoundResult.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
+
+        var problemDetails = notFoundResult.Value as ProblemDetails;
+        Assert.That(problemDetails, Is.Not.Null);
+        Assert.That(problemDetails.Title, Is.EqualTo("Não Encontrado"));
+        Assert.That(problemDetails.Detail, Is.EqualTo(errorMessage));
+    }
+
+    [Test]
+    public async Task GetUserOrderReport_ShouldReturn400BadRequest_WhenOtherInvalidOperationOccurs()
+    {        
+        var userId = Guid.NewGuid();
+        var errorMessage = "Erro inesperado na geração do relatório.";
+                
+        _orderServiceMock.Setup(x => x.GetUserOrderReport(userId)).ThrowsAsync(new InvalidOperationException(errorMessage));
+
+        var result = await _controller.GetUserOrderReport(userId);
+
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
+        var badRequestResult = result as BadRequestObjectResult;
+        Assert.That(badRequestResult.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
+
+        var problemDetails = badRequestResult.Value as ProblemDetails;
+        Assert.That(problemDetails, Is.Not.Null);
+        Assert.That(problemDetails.Title, Is.EqualTo("Solicitação Inválida"));
+    }
+
+    //GET USER REPORT CSV
+
+    [Test]
+    public async Task GetUserOrderReportCsv_ShouldReturnFileResult_WhenCsvIsGenerated()
+    {        
+        var userId = Guid.NewGuid();
+        var fakeCsvString = "OrderId,TotalValue\n123,100.00";
+             
+        _orderServiceMock.Setup(x => x.GetUserOrderReportCsv(userId)).ReturnsAsync(fakeCsvString);
+
+        var result = await _controller.GetUserOrderReportCsv(userId);
+            
+        Assert.That(result, Is.InstanceOf<FileContentResult>());
+        var fileResult = result as FileContentResult;
+                
+        Assert.That(fileResult.ContentType, Is.EqualTo("text/csv"));
+       
+        Assert.That(fileResult.FileDownloadName, Does.StartWith($"relatorio-pedidos-{userId}"));
+        
+        var expectedBytes = Encoding.UTF8.GetBytes(fakeCsvString);
+        Assert.That(fileResult.FileContents, Is.EqualTo(expectedBytes));
+    }
+
+    [Test]
+    public async Task GetUserOrderReportCsv_ShouldReturn404NotFound_WhenUserDoesNotExist()
+    {        
+        var userId = Guid.NewGuid();
+        var errorMessage = $"Usuário com Id '{userId}' não encontrado";
+
+        _orderServiceMock.Setup(x => x.GetUserOrderReportCsv(userId)).ThrowsAsync(new InvalidOperationException(errorMessage));
+
+        var result = await _controller.GetUserOrderReportCsv(userId);
+        
+        Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
+        var notFoundResult = result as NotFoundObjectResult;
+        Assert.That(notFoundResult.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
+    }
+
+    [Test]
+    public async Task GetUserOrderReportCsv_ShouldReturn400BadRequest_WhenOtherInvalidOperationOccurs()
+    {        
+        var userId = Guid.NewGuid();
+        var errorMessage = "Algum outro erro que impede a geração do CSV.";
+
+        _orderServiceMock.Setup(x => x.GetUserOrderReportCsv(userId)).ThrowsAsync(new InvalidOperationException(errorMessage));
+              
+        var result = await _controller.GetUserOrderReportCsv(userId);
+                
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
+        var badRequestResult = result as BadRequestObjectResult;
+        Assert.That(badRequestResult.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
     }
 }
