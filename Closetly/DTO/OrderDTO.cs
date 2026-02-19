@@ -34,6 +34,7 @@ namespace Closetly.DTO
         public DateTime? OrderedAt { get; set; }
         public DateTime ReturnDate { get; set; }    
         public string PaymentStatus { get; set; }
+        public Guid PaymentId { get; set; }
         public decimal Total { get; set; }
         public Guid UserId { get; set; }
         public List<OrderProductResponseDTO> Products { get; set; } = new();
@@ -42,6 +43,7 @@ namespace Closetly.DTO
     public class OrderProductRequestDTO
     {
         public Guid ProductId { get; set; }
+        [AllowedValues(1, ErrorMessage = "Você pode alugar apenas 1 unidade de cada item.")]
         public int Quantity { get; set; }
     }
 

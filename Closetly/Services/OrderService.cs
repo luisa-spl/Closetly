@@ -77,33 +77,20 @@ public class OrderService : IOrderService
             
         }
 
-        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, ProductStatus.UNAVAILABLE);
         newOrder.TbOrderProducts = orderProducts;
         newOrder.OrderTotalItems = orderProducts.Count();
         newOrder.OrderTotalValue = total;
 
-
-        var createdOrder = await _repository.CreateOrder(newOrder);
-
         var newPayment = new CreatePaymentDTO {
-            PaymentValue = createdOrder.OrderTotalValue,
-            OrderId = createdOrder.OrderId
+            PaymentValue = newOrder.OrderTotalValue,
+            OrderId = newOrder.OrderId,
         };
 
-        try
-        {
-            await _paymentRepository.CreatePayment(newPayment, cancellationToken);
+        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, ProductStatus.UNAVAILABLE);
+        var createdOrder = await _repository.CreateOrder(newOrder);
+        var payment = await _paymentRepository.CreatePayment(newPayment, cancellationToken);
 
-        }
-        catch (Microsoft.EntityFrameworkCore.DbUpdateException)
-        {
-            // FK, unique constraint, etc.
-            throw new InvalidOperationException("Não foi possível registrar o pagamento. Verifique o pedido e os dados informados.");
-        }
-
-        
-
-        return NewOrderMapper.MapToOrderResponseDTO(createdOrder);
+        return NewOrderMapper.MapToOrderResponseDTO(createdOrder, payment);
     }
 
     public async Task CancelOrder(Guid orderId)

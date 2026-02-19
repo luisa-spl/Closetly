@@ -8,7 +8,6 @@ namespace Closetly.Services.Interface
 {
     public interface IPaymentService
     {
-        public Task CreatePayment(CreatePaymentDTO payment, CancellationToken ct);
         public Task PayOrder(PaymentDTO payment, CancellationToken ct);
     }
 }
