@@ -1,5 +1,4 @@
 ﻿using Closetly.DTO;
-using Closetly.Services;
 using Closetly.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,21 +17,21 @@ namespace Closetly.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromBody] OrderRequestDTO request) 
+        public async Task<IActionResult> CreateOrder([FromBody] OrderRequestDTO request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            try 
+            try
             {
                 var createdOrder = await _orderService.CreateOrder(request);
                 return StatusCode(201, createdOrder);
             }
-            catch(InvalidOperationException error) 
+            catch (InvalidOperationException error)
             {
-                if(error.Message.Contains("Produto com Id") || error.Message.Contains("Usuário com Id")) 
+                if (error.Message.Contains("Produto com Id") || error.Message.Contains("Usuário com Id"))
                 {
                     var problemDetails = new ProblemDetails
                     {
@@ -77,34 +76,85 @@ namespace Closetly.Controllers
             }
         }
 
-        [HttpPatch("{id}", Name = "CancelOrder")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> CancelOrder([FromRoute] Guid id)
+        [HttpPut("{orderId}/return")]
+        public async Task<IActionResult> ReturnOrder(Guid orderId)
         {
             try
             {
-                await _orderService.CancelOrder(id);
+                await _orderService.ReturnOrder(orderId);
                 return NoContent();
             }
             catch (InvalidOperationException error)
             {
-                if (error.Message.Contains("encontrado"))
+                if (error.Message.Contains("não encontrado"))
                 {
-                    return NotFound(error.Message);
+                    return NotFound(new ProblemDetails
+                    {
+                        Status = StatusCodes.Status404NotFound,
+                        Title = "Não Encontrado",
+                        Detail = error.Message,
+                        Type = "https://httpwg.org/specs/rfc9110.html#status.404"
+                    });
                 }
 
-                return Conflict(error.Message);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Solicitação Inválida",
+                    Detail = error.Message,
+                    Type = "https://httpwg.org/specs/rfc9110.html#status.400"
+                });
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                var problemDetails = new ProblemDetails
+                return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
                 {
                     Status = StatusCodes.Status500InternalServerError,
                     Title = "Erro interno do servidor",
-                    Detail = ex.Message
-                };
-                return StatusCode(StatusCodes.Status500InternalServerError, problemDetails);
+                    Detail = error.Message
+                });
+            }
+        }
+
+        [HttpGet("report/{userId}")]
+        public async Task<IActionResult> GetUserOrderReport(Guid userId)
+        {
+            try
+            {
+                var report = await _orderService.GetUserOrderReport(userId);
+                return Ok(report);
+            }
+            catch (InvalidOperationException error)
+            {
+                if (error.Message.Contains("Usuário com Id"))
+                {
+                    return NotFound(new ProblemDetails
+                    {
+                        Status = StatusCodes.Status404NotFound,
+                        Title = "Não Encontrado",
+                        Detail = error.Message,
+                        Type = "https://httpwg.org/specs/rfc9110.html#status.404"
+                    });
+                }
+
+                return BadRequest(new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Solicitação Inválida",
+                    Detail = error.Message,
+                    Type = "https://httpwg.org/specs/rfc9110.html#status.400"
+                });
+            }
+            catch (Exception error)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Erro interno do servidor",
+                    Detail = error.Message
+                });
             }
         }
     }
 }
+

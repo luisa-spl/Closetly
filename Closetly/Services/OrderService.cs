@@ -5,7 +5,6 @@ using Closetly.Models;
 using Closetly.Repository;
 using Closetly.Repository.Interface;
 using Closetly.Services.Interface;
-
 namespace Closetly.Services;
 
 public class OrderService : IOrderService
@@ -21,7 +20,7 @@ public class OrderService : IOrderService
         _userRepository = userRepository;
         _productRepository = productRepository;
     }
- 
+
     public async Task<OrderResponseDTO> CreateOrder(OrderRequestDTO order)
     {
         var user = _userRepository.GetById(order.UserId);
@@ -31,7 +30,7 @@ public class OrderService : IOrderService
             throw new InvalidOperationException($"Usuário com Id '{order.UserId}' não encontrado");
         }
 
-        if (order.Products.Count == 0) 
+        if (order.Products.Count == 0)
         {
             throw new InvalidOperationException($"Você deve adicionar pelo menos 1 produto ao pedido");
         }
@@ -50,7 +49,7 @@ public class OrderService : IOrderService
         decimal total = 0;
         var orderProducts = new List<TbOrderProduct>();
 
-        foreach (var item in order.Products) 
+        foreach (var item in order.Products)
         {
             var product = await OrderValidator.VerifyProduct(_productRepository, item);
 
@@ -64,10 +63,10 @@ public class OrderService : IOrderService
                 OrderId = newOrder.OrderId,
                 Quantity = 1
             });
-            
+
         }
 
-        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, "UNAVAILABLE");
+        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts);
         newOrder.TbOrderProducts = orderProducts;
         newOrder.OrderTotalItems = orderProducts.Count();
         newOrder.OrderTotalValue = total;
@@ -77,24 +76,70 @@ public class OrderService : IOrderService
         return NewOrderMapper.MapToOrderResponseDTO(createdOrder);
     }
 
-    public async Task CancelOrder(Guid orderId)
+    public async Task ReturnOrder(Guid orderId)
     {
-        var order =  await _repository.GetOrderWithProductsById(orderId);
+        var order = await _repository.GetOrderWithProductsById(orderId);
 
-        if (order == null) {
+        if (order == null)
+        {
             throw new InvalidOperationException($"Pedido com Id '{orderId}' não encontrado");
         }
 
-        if (order.OrderStatus != "PENDING")
+        if (order.OrderStatus == Models.OrderStatus.CONCLUDED)
         {
-            throw new InvalidOperationException($"Pedido com Id '{orderId}' não pode ser cancelado pois já foi pago e/ou está concluido");
+            throw new InvalidOperationException($"O pedido '{orderId}' já foi devolvido");
         }
 
-        order.OrderStatus = "CANCELLED";
-        var orderProducts = order.TbOrderProducts.ToList();
+        if (order.OrderStatus == Models.OrderStatus.CANCELLED)
+        {
+            throw new InvalidOperationException($"O pedido '{orderId}' está cancelado e não pode ser devolvido");
+        }
 
-        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, "AVAILABLE");
+        order.OrderStatus = Models.OrderStatus.CONCLUDED;
+        await _repository.UpdateOrder(order);
 
-        await _repository.CancelOrder(order);
+        foreach (var orderProduct in order.TbOrderProducts)
+        {
+            var product = await _productRepository.GetProductById(orderProduct.ProductId);
+            if (product != null)
+            {
+                await _productRepository.UpdateProductStatus(product, ProductStatus.AVAILABLE);
+            }
+        }
+    }
+
+    public async Task<UserOrderReportDTO> GetUserOrderReport(Guid userId)
+    {
+        var user = _userRepository.GetById(userId);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException($"Usuário com Id '{userId}' não encontrado");
+        }
+
+        var orders = await _repository.GetOrdersByUserId(userId);
+
+        var reportItems = orders.Select(o => new OrderReportItemDTO
+        {
+            OrderId = o.OrderId,
+            OrderedAt = o.OrderedAt,
+            ReturnDate = o.ReturnDate,
+            OrderStatus = o.OrderStatus,
+            OrderTotalItems = o.OrderTotalItems,
+            OrderTotalValue = o.OrderTotalValue,
+            Products = o.TbOrderProducts.Select(p => new OrderProductResponseDTO
+            {
+                ProductId = p.ProductId,
+                Quantity = p.Quantity
+            }).ToList()
+        }).ToList();
+
+        return new UserOrderReportDTO
+        {
+            UserId = userId,
+            TotalOrders = orders.Count,
+            TotalSpent = orders.Sum(o => o.OrderTotalValue),
+            Orders = reportItems
+        };
     }
 }
