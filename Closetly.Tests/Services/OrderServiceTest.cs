@@ -131,7 +131,7 @@ internal class OrderServiceTest
             .Setup(x => x.CreateOrder(It.IsAny<TbOrder>()))
             .ReturnsAsync(createdOrderFromDb);
 
-        var mockPayment = new TbPayment { PaymentId = Guid.NewGuid(), PaymentStatus = "PENDING", PaymentValue = createdOrderFromDb.OrderTotalValue };
+        var mockPayment = new TbPayment { PaymentId = Guid.NewGuid(), PaymentStatus = PaymentStatus.PENDING, PaymentValue = createdOrderFromDb.OrderTotalValue };
 
         _paymentRepositoryMock
             .Setup(x => x.CreatePayment(It.IsAny<CreatePaymentDTO>(), It.IsAny<CancellationToken>()))
