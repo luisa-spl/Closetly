@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR;
 
 namespace Closetly.DTO
 {
@@ -11,6 +12,7 @@ namespace Closetly.DTO
         public Guid Id {get;set;}
         public required string UserName {get;set;}
         public required string Phone { get;set; }
+        [EmailAddress(ErrorMessage = "O formato do e-mail é inválido.")]
         public required string Email { get;set; }
     }
 
