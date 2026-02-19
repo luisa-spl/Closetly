@@ -19,8 +19,11 @@
 <!-- Ignora namespaces/assemblies específicos (ajuste o assembly se necessário) -->
 
 <Exclude>[Closetly]Closetly.Repository.*</Exclude>
+<Exclude>[Closetly]Closetly.Data.*</Exclude>
 
 <ExcludeByFile>**/Models/**/*.cs</ExcludeByFile>
+<ExcludeByFile>**/Data/**/*.cs</ExcludeByFile>
+<ExcludeByFile>**/Program.cs</ExcludeByFile>
 
 <Exclude>[Closetly]Closetly.Models.*</Exclude>
 
