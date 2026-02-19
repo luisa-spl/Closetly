@@ -310,4 +310,59 @@ internal class OrderServiceTest
    
         _productRepositoryMock.Verify(x => x.UpdateProductStatus(mockProduct, ProductStatus.AVAILABLE), Times.Once);
     }
+
+    // GET USER ORDER REPORT
+
+    [Test]
+    public void GetUserOrderReport_ShouldThrowException_WhenUserIsNotFound()
+    {        
+        var userId = Guid.NewGuid();
+
+        _userRepositoryMock.Setup(x => x.GetById(userId)).Returns((TbUser)null);
+                
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.GetUserOrderReport(userId));
+
+        Assert.That(ex.Message, Does.Contain($"Usuário com Id '{userId}' não encontrado"));
+    }
+
+    [Test]
+    public async Task GetUserOrderReport_ShouldReturnCorrectReport_WhenUserHasOrders()
+    {        
+        var userId = Guid.NewGuid();
+        
+        _userRepositoryMock.Setup(x => x.GetById(userId)).Returns(new TbUser { UserId = userId });
+                
+        var mockOrders = new List<TbOrder>
+        {
+            new TbOrder { OrderId = Guid.NewGuid(), OrderTotalValue = 100.50m, TbOrderProducts = new List<TbOrderProduct>() },
+            new TbOrder { OrderId = Guid.NewGuid(), OrderTotalValue = 49.50m, TbOrderProducts = new List<TbOrderProduct>() }
+        };
+
+        _orderRepositoryMock.Setup(x => x.GetOrdersByUserId(userId)).ReturnsAsync(mockOrders);
+                
+        var result = await _service.GetUserOrderReport(userId);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.UserId, Is.EqualTo(userId));
+        Assert.That(result.TotalOrders, Is.EqualTo(2)); 
+        Assert.That(result.TotalSpent, Is.EqualTo(150.00m)); 
+        Assert.That(result.Orders.Count, Is.EqualTo(2)); 
+    }
+
+    [Test]
+    public async Task GetUserOrderReport_ShouldReturnEmptyReport_WhenUserHasNoOrders()
+    {        
+        var userId = Guid.NewGuid();
+
+        _userRepositoryMock.Setup(x => x.GetById(userId)).Returns(new TbUser { UserId = userId });
+
+        _orderRepositoryMock.Setup(x => x.GetOrdersByUserId(userId)).ReturnsAsync(new List<TbOrder>());
+       
+        var result = await _service.GetUserOrderReport(userId);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.TotalOrders, Is.EqualTo(0));
+        Assert.That(result.TotalSpent, Is.EqualTo(0m));
+        Assert.That(result.Orders, Is.Empty);
+    }
 }
