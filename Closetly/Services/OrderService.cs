@@ -43,7 +43,7 @@ public class OrderService : IOrderService
             OrderId = Guid.NewGuid(),
             OrderedAt = dateNow,
             ReturnDate = dateNow.AddDays(order.ReturnPeriod),
-            OrderStatus = "PENDING"
+            OrderStatus = OrderStatus.PENDING
         };
 
         decimal total = 0;
@@ -66,7 +66,7 @@ public class OrderService : IOrderService
 
         }
 
-        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts);
+        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, ProductStatus.UNAVAILABLE);
         newOrder.TbOrderProducts = orderProducts;
         newOrder.OrderTotalItems = orderProducts.Count();
         newOrder.OrderTotalValue = total;
@@ -85,17 +85,17 @@ public class OrderService : IOrderService
             throw new InvalidOperationException($"Pedido com Id '{orderId}' não encontrado");
         }
 
-        if (order.OrderStatus == Models.OrderStatus.CONCLUDED)
+        if (order.OrderStatus == OrderStatus.CONCLUDED)
         {
             throw new InvalidOperationException($"O pedido '{orderId}' já foi devolvido");
         }
 
-        if (order.OrderStatus == Models.OrderStatus.CANCELLED)
+        if (order.OrderStatus == OrderStatus.CANCELLED)
         {
             throw new InvalidOperationException($"O pedido '{orderId}' está cancelado e não pode ser devolvido");
         }
 
-        order.OrderStatus = Models.OrderStatus.CONCLUDED;
+        order.OrderStatus = OrderStatus.CONCLUDED;
         await _repository.UpdateOrder(order);
 
         foreach (var orderProduct in order.TbOrderProducts)
@@ -141,5 +141,31 @@ public class OrderService : IOrderService
             TotalSpent = orders.Sum(o => o.OrderTotalValue),
             Orders = reportItems
         };
+    }
+
+    public async Task<string> GetUserOrderReportCsv(Guid userId)
+    {
+        var report = await GetUserOrderReport(userId);
+
+        var sb = new System.Text.StringBuilder();
+
+        // Cabeçalho
+        sb.AppendLine("OrderId,OrderedAt,ReturnDate,OrderStatus,TotalItems,TotalValue,ProductIds");
+
+        foreach (var order in report.Orders)
+        {
+            var productIds = string.Join("|", order.Products.Select(p => p.ProductId));
+            var orderedAt = order.OrderedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
+            var returnDate = order.ReturnDate.ToString("yyyy-MM-dd HH:mm:ss");
+
+            sb.AppendLine($"{order.OrderId},{orderedAt},{returnDate},{order.OrderStatus},{order.OrderTotalItems},{order.OrderTotalValue.ToString(System.Globalization.CultureInfo.InvariantCulture)},{productIds}");
+        }
+
+        // Linha de totais
+        sb.AppendLine();
+        sb.AppendLine($"Total de Pedidos,{report.TotalOrders}");
+        sb.AppendLine($"Total Gasto,{report.TotalSpent.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+
+        return sb.ToString();
     }
 }
