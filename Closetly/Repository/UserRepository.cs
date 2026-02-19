@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using Closetly.DTO;
 using Closetly.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Closetly.Repository
 {
+    [ExcludeFromCodeCoverage]
     public class UserRepository : IUserRepository
     {
         private readonly PostgresContext _context;

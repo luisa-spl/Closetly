@@ -2,9 +2,11 @@
 using Closetly.Models;
 using Closetly.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Closetly.Repository;
 
+[ExcludeFromCodeCoverage]
 public class OrderRepository : IOrderRepository
 {
     private readonly PostgresContext _context;

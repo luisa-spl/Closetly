@@ -1,9 +1,11 @@
 ﻿using Closetly.DTO;
 using Closetly.Models;
 using Closetly.Repository.Interface;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Closetly.Repository
 {
+    [ExcludeFromCodeCoverage]
     public class RatingRepository : IRatingRepository
     {
         private readonly PostgresContext _context;
