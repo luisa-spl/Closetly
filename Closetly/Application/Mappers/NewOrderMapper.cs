@@ -14,7 +14,7 @@ public static class NewOrderMapper
             ReturnDate = order.ReturnDate,
             Total = order.OrderTotalValue,
             UserId = order.UserId,
-            PaymentStatus = "PENDING",
+            PaymentStatus = PaymentStatus.PENDING,
             Products = order.TbOrderProducts.Select(p => new OrderProductResponseDTO
             {
                 ProductId = p.ProductId,

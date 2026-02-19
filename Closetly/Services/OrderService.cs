@@ -54,7 +54,7 @@ public class OrderService : IOrderService
             OrderId = Guid.NewGuid(),
             OrderedAt = dateNow,
             ReturnDate = dateNow.AddDays(order.ReturnPeriod),
-            OrderStatus = "PENDING"
+            OrderStatus = OrderStatus.PENDING
         };
 
         decimal total = 0;
@@ -77,7 +77,7 @@ public class OrderService : IOrderService
             
         }
 
-        //await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, "UNAVAILABLE");
+        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, ProductStatus.UNAVAILABLE);
         newOrder.TbOrderProducts = orderProducts;
         newOrder.OrderTotalItems = orderProducts.Count();
         newOrder.OrderTotalValue = total;
@@ -114,15 +114,15 @@ public class OrderService : IOrderService
             throw new InvalidOperationException($"Pedido com Id '{orderId}' não encontrado");
         }
 
-        if (order.OrderStatus != "PENDING")
+        if (order.OrderStatus != OrderStatus.PENDING)
         {
             throw new InvalidOperationException($"Pedido com Id '{orderId}' não pode ser cancelado pois já foi pago e/ou está concluido");
         }
 
-        order.OrderStatus = "CANCELLED";
+        order.OrderStatus = OrderStatus.CANCELLED;
         var orderProducts = order.TbOrderProducts.ToList();
 
-        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, "AVAILABLE");
+        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, ProductStatus.AVAILABLE);
 
         await _repository.CancelOrder(order);
     }

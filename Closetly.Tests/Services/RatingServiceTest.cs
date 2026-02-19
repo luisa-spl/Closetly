@@ -43,7 +43,7 @@ public class RatingServiceTest
         var mockedOrder = new TbOrder
         {
             OrderId = orderId,
-            OrderStatus = "pending"
+            OrderStatus = OrderStatus.PENDING
         };
 
         _orderRepositoryMock.Setup(x => x.GetOrderById(orderId)).Returns(mockedOrder);
@@ -62,7 +62,7 @@ public class RatingServiceTest
         var mockedOrder = new TbOrder
         {
             OrderId = orderId,
-            OrderStatus = "concluded"
+            OrderStatus = OrderStatus.CONCLUDED
         };
 
         _orderRepositoryMock.Setup(x => x.GetOrderById(orderId)).Returns(mockedOrder);
