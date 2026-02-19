@@ -4,6 +4,7 @@ using Closetly.Services.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System.Text;
 
 namespace Closetly.Tests.Controllers;
 
@@ -232,5 +233,58 @@ public class OrderControllerTest
         var problemDetails = badRequestResult.Value as ProblemDetails;
         Assert.That(problemDetails, Is.Not.Null);
         Assert.That(problemDetails.Title, Is.EqualTo("Solicitação Inválida"));
+    }
+
+    //GET USER REPORT CSV
+
+    [Test]
+    public async Task GetUserOrderReportCsv_ShouldReturnFileResult_WhenCsvIsGenerated()
+    {        
+        var userId = Guid.NewGuid();
+        var fakeCsvString = "OrderId,TotalValue\n123,100.00";
+             
+        _orderServiceMock.Setup(x => x.GetUserOrderReportCsv(userId)).ReturnsAsync(fakeCsvString);
+
+        var result = await _controller.GetUserOrderReportCsv(userId);
+            
+        Assert.That(result, Is.InstanceOf<FileContentResult>());
+        var fileResult = result as FileContentResult;
+                
+        Assert.That(fileResult.ContentType, Is.EqualTo("text/csv"));
+       
+        Assert.That(fileResult.FileDownloadName, Does.StartWith($"relatorio-pedidos-{userId}"));
+        
+        var expectedBytes = Encoding.UTF8.GetBytes(fakeCsvString);
+        Assert.That(fileResult.FileContents, Is.EqualTo(expectedBytes));
+    }
+
+    [Test]
+    public async Task GetUserOrderReportCsv_ShouldReturn404NotFound_WhenUserDoesNotExist()
+    {        
+        var userId = Guid.NewGuid();
+        var errorMessage = $"Usuário com Id '{userId}' não encontrado";
+
+        _orderServiceMock.Setup(x => x.GetUserOrderReportCsv(userId)).ThrowsAsync(new InvalidOperationException(errorMessage));
+
+        var result = await _controller.GetUserOrderReportCsv(userId);
+        
+        Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
+        var notFoundResult = result as NotFoundObjectResult;
+        Assert.That(notFoundResult.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
+    }
+
+    [Test]
+    public async Task GetUserOrderReportCsv_ShouldReturn400BadRequest_WhenOtherInvalidOperationOccurs()
+    {        
+        var userId = Guid.NewGuid();
+        var errorMessage = "Algum outro erro que impede a geração do CSV.";
+
+        _orderServiceMock.Setup(x => x.GetUserOrderReportCsv(userId)).ThrowsAsync(new InvalidOperationException(errorMessage));
+              
+        var result = await _controller.GetUserOrderReportCsv(userId);
+                
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
+        var badRequestResult = result as BadRequestObjectResult;
+        Assert.That(badRequestResult.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
     }
 }
