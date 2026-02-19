@@ -20,6 +20,29 @@ internal class ProductServiceTest
     }
 
     [Test]
+    public void CreateProduct_ShouldThrow_WhenProductIsNull()
+    {
+        var result = Assert.Throws<ArgumentException>(() => _service.CreateProduct(null));
+        Assert.That(result.Message, Is.EqualTo("Produto não pode ser nulo"));
+        _productRepositoryMock.Verify(x => x.CreateProduct(It.IsAny<ProductDTO>()), Times.Never);
+    }  
+
+    [Test]
+    public void CreateProduct_ShouldCallRepository_WhenProductIsValid()
+    {
+        var product = new ProductDTO
+        {
+            ProductId = Guid.NewGuid(),
+            ProductType = ProductType.DRESS,
+            ProductStatus = ProductStatus.AVAILABLE
+        };
+
+        _service.CreateProduct(product);
+
+        _productRepositoryMock.Verify(x => x.CreateProduct(product), Times.Once);
+    }
+
+    [Test]
     public async Task DeleteProduct_ShouldReturnOk_WhenProductIsDeleted()
     {
         var productId = Guid.NewGuid();
