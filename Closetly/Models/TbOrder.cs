@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Closetly.Models;
 
+[ExcludeFromCodeCoverage]
 public partial class TbOrder
 {
     public Guid OrderId { get; set; }

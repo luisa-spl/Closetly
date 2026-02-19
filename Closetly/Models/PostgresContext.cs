@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
 namespace Closetly.Models;
 
+[ExcludeFromCodeCoverage]
 public partial class PostgresContext : DbContext
 {
     public PostgresContext()

@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Closetly.Models
 {
+    [ExcludeFromCodeCoverage]
     public static class PaymentType
     {
         public static readonly string PIX = "PIX";

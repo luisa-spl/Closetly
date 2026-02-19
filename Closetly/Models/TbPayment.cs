@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Diagnostics.CodeAnalysis;
 namespace Closetly.Models;
 
+[ExcludeFromCodeCoverage]
 public partial class TbPayment
 {
     public Guid PaymentId { get; set; }

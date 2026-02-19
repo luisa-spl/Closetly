@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Closetly.Models;
 
+[ExcludeFromCodeCoverage]
 public partial class TbRating
 {
     public Guid RatingId { get; set; }
