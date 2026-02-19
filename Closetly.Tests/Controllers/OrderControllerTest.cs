@@ -20,6 +20,8 @@ public class OrderControllerTest
         _orderServiceMock = new Mock<IOrderService>();
         _controller = new OrderController(_orderServiceMock.Object);
     }
+    
+    //CREATE ORDER
 
     [Test]
     public async Task CreateOrder_ShouldReturn201Created_WhenOrderIsSuccessful()
@@ -62,6 +64,83 @@ public class OrderControllerTest
         Assert.That(problemDetails, Is.Not.Null);
         Assert.That(problemDetails.Title, Is.EqualTo("Conflito"));
         Assert.That(problemDetails.Detail, Is.EqualTo(errorMessage));
+    }
+
+    [Test]
+    public async Task CreateOrder_ShouldReturn400BadRequest_WhenModelStateIsInvalid()
+    {
+        var requestDto = new OrderRequestDTO();
+
+        _controller.ModelState.AddModelError("UserId", "Required");
+
+        var result = await _controller.CreateOrder(requestDto, CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
+        _orderServiceMock.Verify(x => x.CreateOrder(It.IsAny<OrderRequestDTO>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [TestCase("Produto com Id '123' não encontrado")]
+    [TestCase("Usuário com Id '123' não encontrado")]
+    public async Task CreateOrder_ShouldReturn404NotFound_WhenProductOrUserNotFound(string errorMessage)
+    {
+        var requestDto = new OrderRequestDTO();
+
+        _orderServiceMock
+            .Setup(x => x.CreateOrder(requestDto, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException(errorMessage));
+
+        var result = await _controller.CreateOrder(requestDto, CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
+        var nf = (NotFoundObjectResult)result;
+
+        var pd = nf.Value as ProblemDetails;
+        Assert.That(pd, Is.Not.Null);
+        Assert.That(pd!.Status, Is.EqualTo(StatusCodes.Status404NotFound));
+        Assert.That(pd.Title, Is.EqualTo("Não Encontrado"));
+        Assert.That(pd.Detail, Is.EqualTo(errorMessage));
+    }
+
+    [Test]
+    public async Task CreateOrder_ShouldReturn400BadRequest_WhenInvalidOperationDoesNotMatchAnyRule()
+    {
+        var requestDto = new OrderRequestDTO();
+        var errorMessage = "Alguma regra de negócio inválida.";
+
+        _orderServiceMock
+            .Setup(x => x.CreateOrder(requestDto, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException(errorMessage));
+
+        var result = await _controller.CreateOrder(requestDto, CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
+        var br = (BadRequestObjectResult)result;
+
+        var pd = br.Value as ProblemDetails;
+        Assert.That(pd, Is.Not.Null);
+        Assert.That(pd!.Status, Is.EqualTo(StatusCodes.Status400BadRequest));
+        Assert.That(pd.Title, Is.EqualTo("Solicitação Inválida"));
+        Assert.That(pd.Detail, Is.EqualTo(errorMessage));
+    }
+
+    [Test]
+    public async Task CreateOrder_ShouldReturn500_WhenUnexpectedExceptionOccurs()
+    {
+        var requestDto = new OrderRequestDTO();
+
+        _orderServiceMock
+            .Setup(x => x.CreateOrder(requestDto, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Boom"));
+
+        var result = await _controller.CreateOrder(requestDto, CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        var obj = (ObjectResult)result;
+
+        Assert.That(obj.StatusCode, Is.EqualTo(StatusCodes.Status500InternalServerError));
+        var pd = obj.Value as ProblemDetails;
+        Assert.That(pd, Is.Not.Null);
+        Assert.That(pd!.Title, Is.EqualTo("Erro interno do servidor"));
     }
 
     //CANCEL ORDER
@@ -114,6 +193,22 @@ public class OrderControllerTest
         var objectResult = result as ConflictObjectResult;
         Assert.That(objectResult.StatusCode, Is.EqualTo(StatusCodes.Status409Conflict));
         Assert.That(objectResult.Value, Is.EqualTo(errorMessage));
+    }
+
+    [Test]
+    public async Task CancelOrder_ShouldReturn500_WhenUnexpectedExceptionOccurs()
+    {
+        var orderId = Guid.NewGuid();
+
+        _orderServiceMock
+            .Setup(x => x.CancelOrder(orderId))
+            .ThrowsAsync(new Exception("Boom"));
+
+        var result = await _controller.CancelOrder(orderId);
+
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        var obj = (ObjectResult)result;
+        Assert.That(obj.StatusCode, Is.EqualTo(StatusCodes.Status500InternalServerError));
     }
 
     //RETURN ORDER
@@ -171,6 +266,22 @@ public class OrderControllerTest
         Assert.That(problemDetails, Is.Not.Null);
         Assert.That(problemDetails.Title, Is.EqualTo("Solicitação Inválida"));
         Assert.That(problemDetails.Detail, Is.EqualTo(errorMessage));
+    }
+
+    [Test]
+    public async Task ReturnOrder_ShouldReturn500_WhenUnexpectedExceptionOccurs()
+    {
+        var orderId = Guid.NewGuid();
+
+        _orderServiceMock
+            .Setup(x => x.ReturnOrder(orderId))
+            .ThrowsAsync(new Exception("Boom"));
+
+        var result = await _controller.ReturnOrder(orderId);
+
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        var obj = (ObjectResult)result;
+        Assert.That(obj.StatusCode, Is.EqualTo(StatusCodes.Status500InternalServerError));
     }
 
     //GET USER ORDER REPORT
@@ -235,6 +346,23 @@ public class OrderControllerTest
         Assert.That(problemDetails.Title, Is.EqualTo("Solicitação Inválida"));
     }
 
+    [Test]
+    public async Task GetUserOrderReport_ShouldReturn500_WhenUnexpectedExceptionOccurs()
+    {
+        var userId = Guid.NewGuid();
+
+        _orderServiceMock
+            .Setup(x => x.GetUserOrderReport(userId))
+            .ThrowsAsync(new Exception("Boom"));
+
+        var result = await _controller.GetUserOrderReport(userId);
+
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        var obj = (ObjectResult)result;
+        Assert.That(obj.StatusCode, Is.EqualTo(StatusCodes.Status500InternalServerError));
+    }
+
+
     //GET USER REPORT CSV
 
     [Test]
@@ -287,4 +415,21 @@ public class OrderControllerTest
         var badRequestResult = result as BadRequestObjectResult;
         Assert.That(badRequestResult.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
     }
+
+    [Test]
+    public async Task GetUserOrderReportCsv_ShouldReturn500_WhenUnexpectedExceptionOccurs()
+    {
+        var userId = Guid.NewGuid();
+
+        _orderServiceMock
+            .Setup(x => x.GetUserOrderReportCsv(userId))
+            .ThrowsAsync(new Exception("Boom"));
+
+        var result = await _controller.GetUserOrderReportCsv(userId);
+
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        var obj = (ObjectResult)result;
+        Assert.That(obj.StatusCode, Is.EqualTo(StatusCodes.Status500InternalServerError));
+    }
+
 }
