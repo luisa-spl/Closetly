@@ -101,7 +101,7 @@ internal class OrderServiceTest
         var validProduct = new TbProduct
         {
             ProductId = productId,
-            ProductStatus = "AVAILABLE",
+            ProductStatus = ProductStatus.AVAILABLE,
             ProductValue = 150.00m
         };
 
@@ -113,7 +113,7 @@ internal class OrderServiceTest
         {
             OrderId = Guid.NewGuid(),
             UserId = userId,
-            OrderStatus = "PENDING",
+            OrderStatus = OrderStatus.PENDING,
             OrderTotalValue = 150.00m,
             OrderTotalItems = 1
         };
@@ -130,7 +130,7 @@ internal class OrderServiceTest
             orderParaSalvar.UserId == userId &&
             orderParaSalvar.OrderTotalItems == 1 &&
             orderParaSalvar.OrderTotalValue == 150.00m && 
-            orderParaSalvar.OrderStatus == "PENDING"
+            orderParaSalvar.OrderStatus == OrderStatus.PENDING
         )), Times.Once);
     }
 
@@ -155,7 +155,7 @@ internal class OrderServiceTest
         var mockOrder = new TbOrder
         {
             OrderId = orderId,
-            OrderStatus = "LEASED"
+            OrderStatus = OrderStatus.LEASED
         };
 
         _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync(mockOrder);
@@ -173,8 +173,8 @@ internal class OrderServiceTest
         var product1Id = Guid.NewGuid();
         var product2Id = Guid.NewGuid();
 
-        var product1 = new TbProduct { ProductId = product1Id, ProductStatus = "UNAVAILABLE" };
-        var product2 = new TbProduct { ProductId = product2Id, ProductStatus = "UNAVAILABLE" };
+        var product1 = new TbProduct { ProductId = product1Id, ProductStatus = ProductStatus.UNAVAILABLE };
+        var product2 = new TbProduct { ProductId = product2Id, ProductStatus = ProductStatus.UNAVAILABLE };
 
         _productRepositoryMock
         .Setup(x => x.GetProductById(product1Id))
@@ -187,7 +187,7 @@ internal class OrderServiceTest
         var mockOrder = new TbOrder
         {
             OrderId = orderId,
-            OrderStatus = "PENDING",
+            OrderStatus = OrderStatus.PENDING,
             TbOrderProducts = new List<TbOrderProduct>
             {
                 new TbOrderProduct { OrderId= orderId, ProductId = product1Id, Quantity = 1 },
@@ -199,7 +199,7 @@ internal class OrderServiceTest
 
         await _service.CancelOrder(orderId);
 
-        Assert.That(mockOrder.OrderStatus, Is.EqualTo("CANCELLED"));
+        Assert.That(mockOrder.OrderStatus, Is.EqualTo(OrderStatus.CANCELLED));
 
         _orderRepositoryMock.Verify(x => x.CancelOrder(mockOrder), Times.Once);
     }
