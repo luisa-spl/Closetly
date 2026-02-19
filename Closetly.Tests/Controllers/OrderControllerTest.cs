@@ -27,10 +27,10 @@ public class OrderControllerTest
         var expectedResponse = new OrderResponseDTO { Id = Guid.NewGuid() };
 
         _orderServiceMock
-            .Setup(x => x.CreateOrder(requestDto))
+            .Setup(x => x.CreateOrder(requestDto, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
-        var result = await _controller.CreateOrder(requestDto);
+        var result = await _controller.CreateOrder(requestDto, CancellationToken.None);
 
         Assert.That(result, Is.InstanceOf<ObjectResult>());
         var objectResult = result as ObjectResult;
@@ -45,11 +45,11 @@ public class OrderControllerTest
         var errorMessage = "O produto com o id especificado não está disponível para locação no momento.";
 
         _orderServiceMock
-            .Setup(x => x.CreateOrder(requestDto))
+            .Setup(x => x.CreateOrder(requestDto, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException(errorMessage));
 
    
-        var result = await _controller.CreateOrder(requestDto);
+        var result = await _controller.CreateOrder(requestDto, CancellationToken.None);
 
 
         Assert.That(result, Is.InstanceOf<ObjectResult>());
