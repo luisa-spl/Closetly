@@ -75,5 +75,24 @@ namespace Closetly.DTO
         [Required]
         public Guid OrderId { get; set; }
     }
+    public class OrderReportItemDTO //REPORT DO ITEM
+    {
+        public Guid OrderId { get; set; }
+        public DateTime? OrderedAt { get; set; }
+        public DateTime ReturnDate { get; set; }
+        public string OrderStatus { get; set; } = null!;
+        public int? OrderTotalItems { get; set; }
+        public decimal OrderTotalValue { get; set; }
+        public List<OrderProductResponseDTO> Products { get; set; } = new();
+    }
+
+    public class UserOrderReportDTO // REPORT DO ORDER
+    {
+        public Guid UserId { get; set; }
+        public int TotalOrders { get; set; }
+        public decimal TotalSpent { get; set; }
+        public List<OrderReportItemDTO> Orders { get; set; } = new();
+    }
 
 }
+

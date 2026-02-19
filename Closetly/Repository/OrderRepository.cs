@@ -2,7 +2,6 @@
 using Closetly.Models;
 using Closetly.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
-using System.Net.NetworkInformation;
 
 namespace Closetly.Repository;
 
@@ -22,7 +21,10 @@ public class OrderRepository : IOrderRepository
 
     public async Task<TbOrder?> GetOrderWithProductsById(Guid id)
     {
-        return await _context.TbOrders.Include(o => o.TbOrderProducts).ThenInclude(op => op.Product).FirstOrDefaultAsync(o => o.OrderId == id);
+        return await _context.TbOrders
+            .Include(o => o.TbOrderProducts)
+                .ThenInclude(op => op.Product)
+            .FirstOrDefaultAsync(o => o.OrderId == id);
     }
 
     public async Task<TbOrder> CreateOrder(TbOrder order)
@@ -32,10 +34,25 @@ public class OrderRepository : IOrderRepository
         return order;
     }
 
+    public async Task UpdateOrder(TbOrder order)
+    {
+        _context.TbOrders.Update(order);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task CancelOrder(TbOrder order)
     {
         order.OrderStatus = OrderStatus.CANCELLED;
         _context.TbOrders.Update(order);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<TbOrder>> GetOrdersByUserId(Guid userId)
+    {
+        return await _context.TbOrders
+            .Include(o => o.TbOrderProducts)
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.OrderedAt)
+            .ToListAsync();
     }
 }
