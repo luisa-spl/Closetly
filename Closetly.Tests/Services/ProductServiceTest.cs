@@ -166,4 +166,24 @@ internal class ProductServiceTest
 
         _productRepositoryMock.Verify(x => x.UpdateProduct(existingProduct), Times.Once);
     }
+
+    [Test]
+    public void GetAvailableProducts_ShouldReturnListOfProducts_WhenProductsAreAvailable()
+    {
+        var filters = new ProductFilters { ProductType = ProductType.DRESS };
+
+        var expectedProducts = new List<ProductDTO>
+        {
+            new ProductDTO { ProductId = Guid.NewGuid(), ProductType = ProductType.DRESS, ProductStatus = ProductStatus.AVAILABLE },
+            new ProductDTO { ProductId = Guid.NewGuid(), ProductType = ProductType.DRESS, ProductStatus = ProductStatus.AVAILABLE }
+        };
+
+        _productRepositoryMock.Setup(x => x.GetAvailableProducts(filters)).Returns(expectedProducts);
+
+        var result = _service.GetAvailableProducts(filters);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Is.SameAs(expectedProducts));
+        _productRepositoryMock.Verify(x => x.GetAvailableProducts(filters), Times.Once);
+    }
 }
