@@ -14,6 +14,7 @@ namespace Closetly.DTO
         public required string PaymentType { get; set; }
 
         [Required]
+        [Range(0.01, double.MaxValue, ErrorMessage = "O valor do pagamento deve ser maior que zero.")]
         public required decimal PaymentValue { get; set; }
         
     }
@@ -23,6 +24,7 @@ namespace Closetly.DTO
         public required Guid OrderId { get; set; }
 
         [Required]
+        [Range(0.01, double.MaxValue, ErrorMessage = "O valor do produto deve ser maior que zero.")]
         public required decimal PaymentValue { get; set; }
 
     }
