@@ -6,5 +6,6 @@ public interface IOrderService
 {
     public Task<OrderResponseDTO> CreateOrder(OrderRequestDTO order);
     public Task ReturnOrder(Guid orderId);
-    public Task<UserOrderReportDTO> GetUserOrderReport(Guid userId); //REPORT
+    public Task<UserOrderReportDTO> GetUserOrderReport(Guid userId);
+    public Task<string> GetUserOrderReportCsv(Guid userId);
 }

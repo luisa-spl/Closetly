@@ -142,4 +142,30 @@ public class OrderService : IOrderService
             Orders = reportItems
         };
     }
+
+    public async Task<string> GetUserOrderReportCsv(Guid userId)
+    {
+        var report = await GetUserOrderReport(userId);
+
+        var sb = new System.Text.StringBuilder();
+
+        // Cabeçalho
+        sb.AppendLine("OrderId,OrderedAt,ReturnDate,OrderStatus,TotalItems,TotalValue,ProductIds");
+
+        foreach (var order in report.Orders)
+        {
+            var productIds = string.Join("|", order.Products.Select(p => p.ProductId));
+            var orderedAt = order.OrderedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
+            var returnDate = order.ReturnDate.ToString("yyyy-MM-dd HH:mm:ss");
+
+            sb.AppendLine($"{order.OrderId},{orderedAt},{returnDate},{order.OrderStatus},{order.OrderTotalItems},{order.OrderTotalValue.ToString(System.Globalization.CultureInfo.InvariantCulture)},{productIds}");
+        }
+
+        // Linha de totais
+        sb.AppendLine();
+        sb.AppendLine($"Total de Pedidos,{report.TotalOrders}");
+        sb.AppendLine($"Total Gasto,{report.TotalSpent.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+
+        return sb.ToString();
+    }
 }
