@@ -43,7 +43,7 @@ public class OrderService : IOrderService
             OrderId = Guid.NewGuid(),
             OrderedAt = dateNow,
             ReturnDate = dateNow.AddDays(order.ReturnPeriod),
-            OrderStatus = "PENDING"
+            OrderStatus = OrderStatus.PENDING
         };
 
         decimal total = 0;
@@ -66,7 +66,7 @@ public class OrderService : IOrderService
 
         }
 
-        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts);
+        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, ProductStatus.UNAVAILABLE);
         newOrder.TbOrderProducts = orderProducts;
         newOrder.OrderTotalItems = orderProducts.Count();
         newOrder.OrderTotalValue = total;
@@ -85,17 +85,17 @@ public class OrderService : IOrderService
             throw new InvalidOperationException($"Pedido com Id '{orderId}' não encontrado");
         }
 
-        if (order.OrderStatus == Models.OrderStatus.CONCLUDED)
+        if (order.OrderStatus == OrderStatus.CONCLUDED)
         {
             throw new InvalidOperationException($"O pedido '{orderId}' já foi devolvido");
         }
 
-        if (order.OrderStatus == Models.OrderStatus.CANCELLED)
+        if (order.OrderStatus == OrderStatus.CANCELLED)
         {
             throw new InvalidOperationException($"O pedido '{orderId}' está cancelado e não pode ser devolvido");
         }
 
-        order.OrderStatus = Models.OrderStatus.CONCLUDED;
+        order.OrderStatus = OrderStatus.CONCLUDED;
         await _repository.UpdateOrder(order);
 
         foreach (var orderProduct in order.TbOrderProducts)
