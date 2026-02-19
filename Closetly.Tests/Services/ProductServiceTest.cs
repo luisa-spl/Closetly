@@ -27,7 +27,7 @@ internal class ProductServiceTest
         var mockedProduct = new TbProduct
         {
             ProductId = productId,
-            ProductStatus = "available"
+            ProductStatus = ProductStatus.AVAILABLE
         };
 
         _productRepositoryMock.Setup(x => x.GetProductById(productId)).ReturnsAsync(mockedProduct);
@@ -35,7 +35,7 @@ internal class ProductServiceTest
 
         await _service.DeleteProduct(productId);
 
-        Assert.That(mockedProduct.ProductStatus, Is.EqualTo("deleted"));
+        Assert.That(mockedProduct.ProductStatus, Is.EqualTo(ProductStatus.DELETED));
 
         _productRepositoryMock.Verify(x => x.DeleteProduct(mockedProduct), Times.Once);
     }
@@ -62,7 +62,7 @@ internal class ProductServiceTest
         var mockedProduct = new TbProduct
         {
             ProductId = productId,
-            ProductStatus = "deleted"
+            ProductStatus = ProductStatus.DELETED
         };
 
         _productRepositoryMock.Setup(x => x.GetProductById(productId)).ReturnsAsync(mockedProduct);
@@ -96,21 +96,21 @@ internal class ProductServiceTest
         {
             ProductId = productId,
             ProductValue = 50m,
-            ProductStatus = "available",
-            ProductType = "dress",
+            ProductStatus = ProductStatus.AVAILABLE,
+            ProductType = ProductType.DRESS,
             ProductColor = "azul",
-            ProductOccasion = "casual",
-            ProductSize = "m"
+            ProductOccasion = ProductOccasion.CASUAL,
+            ProductSize = ProductSize.M
         };
 
         var updateDto = new UpdateProductDTO
         {
             ProductValue = 150m,
-            ProductStatus = "unavailable",
-            ProductType = "jacket",
+            ProductStatus = ProductStatus.UNAVAILABLE,
+            ProductType = ProductType.JACKET,
             ProductColor = "preto",
-            ProductOccasion = "wedding",
-            ProductSize = "g"
+            ProductOccasion = ProductOccasion.WEDDING,
+            ProductSize = ProductSize.L
         };
 
         _productRepositoryMock.Setup(x => x.GetProductById(productId)).ReturnsAsync(existingProduct);
@@ -121,10 +121,10 @@ internal class ProductServiceTest
         await _service.UpdateProduct(productId, updateDto);
 
         Assert.That(existingProduct.ProductValue, Is.EqualTo(150m));
-        Assert.That(existingProduct.ProductStatus, Is.EqualTo("unavailable"));
+        Assert.That(existingProduct.ProductStatus, Is.EqualTo(ProductStatus.UNAVAILABLE));
         Assert.That(existingProduct.ProductColor, Is.EqualTo("preto"));
-        Assert.That(existingProduct.ProductOccasion, Is.EqualTo("wedding"));
-        Assert.That(existingProduct.ProductSize, Is.EqualTo("g"));
+        Assert.That(existingProduct.ProductOccasion, Is.EqualTo(ProductOccasion.WEDDING));
+        Assert.That(existingProduct.ProductSize, Is.EqualTo(ProductSize.L));
 
         _productRepositoryMock.Verify(x => x.UpdateProduct(existingProduct), Times.Once);
     }
@@ -138,17 +138,17 @@ internal class ProductServiceTest
         {
             ProductId = productId,
             ProductValue = 50m,
-            ProductStatus = "available",
+            ProductStatus = ProductStatus.AVAILABLE,
             ProductColor = "azul",
-            ProductType = "dress",
-            ProductOccasion = "casual",
-            ProductSize = "m"
+            ProductType = ProductType.DRESS,
+            ProductOccasion = ProductOccasion.CASUAL,
+            ProductSize = ProductSize.M
         };
 
         var updateDto = new UpdateProductDTO
         {
             ProductValue = 99m,
-            ProductStatus = "unavailable"
+            ProductStatus = ProductStatus.UNAVAILABLE
         };
 
         _productRepositoryMock.Setup(x => x.GetProductById(productId)).ReturnsAsync(existingProduct);
@@ -158,11 +158,11 @@ internal class ProductServiceTest
         await _service.UpdateProduct(productId, updateDto);
 
         Assert.That(existingProduct.ProductValue, Is.EqualTo(99m));
-        Assert.That(existingProduct.ProductStatus, Is.EqualTo("unavailable"));
+        Assert.That(existingProduct.ProductStatus, Is.EqualTo(ProductStatus.UNAVAILABLE));
 
         
         Assert.That(existingProduct.ProductColor, Is.EqualTo("azul"));
-        Assert.That(existingProduct.ProductType, Is.EqualTo("dress"));
+        Assert.That(existingProduct.ProductType, Is.EqualTo(ProductType.DRESS));
 
         _productRepositoryMock.Verify(x => x.UpdateProduct(existingProduct), Times.Once);
     }
