@@ -5,7 +5,7 @@ namespace Closetly.Application.Mappers;
 
 public static class NewOrderMapper
 {
-    public static OrderResponseDTO MapToOrderResponseDTO(TbOrder order)
+    public static OrderResponseDTO MapToOrderResponseDTO(TbOrder order, TbPayment payment)
     {
         var response = new OrderResponseDTO
         {
@@ -14,7 +14,8 @@ public static class NewOrderMapper
             ReturnDate = order.ReturnDate,
             Total = order.OrderTotalValue,
             UserId = order.UserId,
-            PaymentStatus = "PENDING",
+            PaymentId = payment.PaymentId,
+            PaymentStatus = payment.PaymentStatus,
             Products = order.TbOrderProducts.Select(p => new OrderProductResponseDTO
             {
                 ProductId = p.ProductId,

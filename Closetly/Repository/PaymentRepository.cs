@@ -13,16 +13,21 @@ namespace Closetly.Repository
             _context = context;
         }
 
-
-        public async Task CreatePayment(CreatePaymentDTO payment, CancellationToken ct)
+        public async Task<TbPayment?> CreatePayment(CreatePaymentDTO payment, CancellationToken ct)
         {
-            _context.TbPayments.Add(new TbPayment
+            var newPayment = new TbPayment
             {
+                PaymentId = new Guid(),
                 OrderId = payment.OrderId,
+                PaymentStatus = PaymentStatus.PENDING,
                 PaymentValue = payment.PaymentValue,
-                PaymentStatus = PaymentStatus.PENDING
-            });
-            await _context.SaveChangesAsync();
+                PaymentType = PaymentType.PIX,
+
+            };
+
+            _context.TbPayments.Add(newPayment);
+            await _context.SaveChangesAsync(ct);
+            return newPayment;
         }
 
         public async Task PayOrder(PaymentDTO payment, CancellationToken ct)
