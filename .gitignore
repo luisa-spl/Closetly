@@ -366,3 +366,4 @@ appsettings.Development.json
 **/obj/Debug/**
 coveragereport
 TestResults
+.vscode/settings.json

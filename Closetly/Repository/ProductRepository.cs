@@ -23,7 +23,7 @@ namespace Closetly.Repository
     {
         var query = _context.TbProducts
             .AsNoTracking()
-            .Where(p => p.ProductStatus == "available");
+            .Where(p => p.ProductStatus == ProductStatus.AVAILABLE);
 
         // se filters vier null, vira um objeto vazio
         filters ??= new ProductFilters();
@@ -66,7 +66,7 @@ namespace Closetly.Repository
                 ProductSize = product.ProductSize,
                 ProductType = product.ProductType,
                 ProductOccasion = product.ProductOccasion,
-                ProductStatus = "available",
+                ProductStatus = ProductStatus.AVAILABLE,
                 ProductValue = product.ProductValue
             };
 
