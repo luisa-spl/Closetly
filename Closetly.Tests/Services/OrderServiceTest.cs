@@ -154,6 +154,8 @@ internal class OrderServiceTest
     ), Times.Once);
     }
 
+    // CANCEL ORDER
+
     [Test]
     public void CancelOrder_ShouldThrowException_WhenOrderIsNotFound()
     {
@@ -222,5 +224,90 @@ internal class OrderServiceTest
         Assert.That(mockOrder.OrderStatus, Is.EqualTo(OrderStatus.CANCELLED));
 
         _orderRepositoryMock.Verify(x => x.CancelOrder(mockOrder), Times.Once);
+    }
+
+    //RETURN ORDER
+
+    [Test]
+    public void ReturnOrder_ShouldThrowException_WhenOrderIsNotFound()
+    {        
+        var orderId = Guid.NewGuid();
+       
+        _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync((TbOrder)null);
+        
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.ReturnOrder(orderId));
+
+        Assert.That(ex.Message, Does.Contain($"Pedido com Id '{orderId}' não encontrado"));
+                
+        _orderRepositoryMock.Verify(x => x.UpdateOrder(It.IsAny<TbOrder>()), Times.Never);
+    }
+
+    [Test]
+    public void ReturnOrder_ShouldThrowException_WhenOrderIsAlreadyConcluded()
+    {        
+        var orderId = Guid.NewGuid();
+        var mockOrder = new TbOrder
+        {
+            OrderId = orderId,
+            OrderStatus = OrderStatus.CONCLUDED
+        };
+
+        _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync(mockOrder);
+       
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.ReturnOrder(orderId));
+
+        Assert.That(ex.Message, Does.Contain($"O pedido '{orderId}' já foi devolvido"));
+    }
+
+    [Test]
+    public void ReturnOrder_ShouldThrowException_WhenOrderIsCancelled()
+    {        
+        var orderId = Guid.NewGuid();
+        var mockOrder = new TbOrder
+        {
+            OrderId = orderId,
+            OrderStatus = OrderStatus.CANCELLED
+        };
+
+        _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync(mockOrder);
+      
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.ReturnOrder(orderId));
+
+        Assert.That(ex.Message, Does.Contain($"O pedido '{orderId}' está cancelado e não pode ser devolvido"));
+    }
+
+    [Test]
+    public async Task ReturnOrder_ShouldUpdateOrderAndProductStatus_WhenOrderIsValid()
+    {        
+        var orderId = Guid.NewGuid();
+        var productId = Guid.NewGuid();
+        
+        var mockProduct = new TbProduct
+        {
+            ProductId = productId,
+            ProductStatus = ProductStatus.UNAVAILABLE
+        };
+
+        var mockOrder = new TbOrder
+        {
+            OrderId = orderId,
+            OrderStatus = OrderStatus.LEASED,
+            TbOrderProducts = new List<TbOrderProduct>
+            {
+                new TbOrderProduct { ProductId = productId }
+            }
+        };
+                
+        _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync(mockOrder);
+
+        _productRepositoryMock.Setup(x => x.GetProductById(productId)).ReturnsAsync(mockProduct);
+        
+        await _service.ReturnOrder(orderId);
+
+        Assert.That(mockOrder.OrderStatus, Is.EqualTo(OrderStatus.CONCLUDED));
+                
+        _orderRepositoryMock.Verify(x => x.UpdateOrder(mockOrder), Times.Once);
+   
+        _productRepositoryMock.Verify(x => x.UpdateProductStatus(mockProduct, ProductStatus.AVAILABLE), Times.Once);
     }
 }
