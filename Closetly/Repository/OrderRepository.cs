@@ -34,7 +34,7 @@ public class OrderRepository : IOrderRepository
 
     public async Task CancelOrder(TbOrder order)
     {
-        order.OrderStatus = "CANCELLED";
+        order.OrderStatus = OrderStatus.CANCELLED;
         _context.TbOrders.Update(order);
         await _context.SaveChangesAsync();
     }
