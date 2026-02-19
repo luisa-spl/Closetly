@@ -19,6 +19,10 @@
 <!-- Ignora namespaces/assemblies específicos (ajuste o assembly se necessário) -->
 
 <Exclude>[Closetly]Closetly.Repositories.*</Exclude>
+	
+<ExcludeByFile>**/Models/**/*.cs</ExcludeByFile>
+
+	<Exclude>[Closetly]Closetly.Models.*</Exclude>
 
 <!-- Ignora membros/ classes marcadas com [ExcludeFromCodeCoverage] -->
 

@@ -7,9 +7,11 @@ using Closetly.Models;
 using Microsoft.EntityFrameworkCore;
 using Closetly.DTO;
 using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Closetly.Repository
 {
+    [ExcludeFromCodeCoverage]
     public class ProductRepository : IProductRepository
     {
         private readonly PostgresContext _context;
