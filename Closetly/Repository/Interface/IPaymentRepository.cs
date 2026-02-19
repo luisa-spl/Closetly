@@ -8,7 +8,7 @@ namespace Closetly.Repository.Interface
 {
     public interface IPaymentRepository
     {
-        public Task CreatePayment(PaymentDTO payment, CancellationToken ct);
         public Task PayOrder(PaymentDTO payment, CancellationToken ct);
+        public Task CreatePayment(CreatePaymentDTO payment, CancellationToken ct);
     }
 }

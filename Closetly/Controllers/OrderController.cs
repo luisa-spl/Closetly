@@ -18,7 +18,7 @@ namespace Closetly.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromBody] OrderRequestDTO request) 
+        public async Task<IActionResult> CreateOrder([FromBody] OrderRequestDTO request, CancellationToken cancellationToken) 
         {
             if (!ModelState.IsValid)
             {
@@ -27,7 +27,7 @@ namespace Closetly.Controllers
 
             try 
             {
-                var createdOrder = await _orderService.CreateOrder(request);
+                var createdOrder = await _orderService.CreateOrder(request, cancellationToken);
                 return StatusCode(201, createdOrder);
             }
             catch(InvalidOperationException error) 

@@ -17,7 +17,7 @@ namespace Closetly.Services
             _repository = paymentRepository;
         }
 
-        public async Task CreatePayment(PaymentDTO payment, CancellationToken ct)
+        public async Task CreatePayment(CreatePaymentDTO payment, CancellationToken ct)
         {
             if (payment == null) throw new ArgumentException("Payload inválido.");
             if (payment.OrderId == Guid.Empty) throw new ArgumentException("OrderId inválido.");

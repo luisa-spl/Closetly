@@ -17,4 +17,13 @@ namespace Closetly.DTO
         public required decimal PaymentValue { get; set; }
         
     }
+
+    public class CreatePaymentDTO
+    {
+        public required Guid OrderId { get; set; }
+
+        [Required]
+        public required decimal PaymentValue { get; set; }
+
+    }
 }

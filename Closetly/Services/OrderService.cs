@@ -5,6 +5,8 @@ using Closetly.Models;
 using Closetly.Repository;
 using Closetly.Repository.Interface;
 using Closetly.Services.Interface;
+using Closetly.Services;
+
 
 namespace Closetly.Services;
 
@@ -13,16 +15,24 @@ public class OrderService : IOrderService
     private readonly IOrderRepository _repository;
     private readonly IUserRepository _userRepository;
     private readonly IProductRepository _productRepository;
+    private readonly IPaymentRepository _paymentRepository;
 
 
-    public OrderService(IOrderRepository orderRepository, IUserRepository userRepository, IProductRepository productRepository)
+    public OrderService
+    (
+        IOrderRepository orderRepository, 
+        IUserRepository userRepository, 
+        IProductRepository productRepository, 
+        IPaymentRepository paymentRepository
+    )
     {
         _repository = orderRepository;
         _userRepository = userRepository;
         _productRepository = productRepository;
+        _paymentRepository = paymentRepository;
     }
  
-    public async Task<OrderResponseDTO> CreateOrder(OrderRequestDTO order)
+    public async Task<OrderResponseDTO> CreateOrder(OrderRequestDTO order, CancellationToken cancellationToken)
     {
         var user = _userRepository.GetById(order.UserId);
 
@@ -67,12 +77,31 @@ public class OrderService : IOrderService
             
         }
 
-        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, "UNAVAILABLE");
+        //await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, "UNAVAILABLE");
         newOrder.TbOrderProducts = orderProducts;
         newOrder.OrderTotalItems = orderProducts.Count();
         newOrder.OrderTotalValue = total;
 
+
         var createdOrder = await _repository.CreateOrder(newOrder);
+
+        var newPayment = new CreatePaymentDTO {
+            PaymentValue = createdOrder.OrderTotalValue,
+            OrderId = createdOrder.OrderId
+        };
+
+        try
+        {
+            await _paymentRepository.CreatePayment(newPayment, cancellationToken);
+
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+        {
+            // FK, unique constraint, etc.
+            throw new InvalidOperationException("Não foi possível registrar o pagamento. Verifique o pedido e os dados informados.");
+        }
+
+        
 
         return NewOrderMapper.MapToOrderResponseDTO(createdOrder);
     }
