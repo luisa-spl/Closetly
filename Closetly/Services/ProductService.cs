@@ -60,12 +60,12 @@ namespace Closetly.Services
                 throw new InvalidOperationException("Produto não encontrado.");
             }
 
-            if (existingProduct.ProductStatus == "deleted")
+            if (existingProduct.ProductStatus == ProductStatus.DELETED)
             {
                 throw new InvalidOperationException("O produto já foi deletado.");
             }
 
-            existingProduct.ProductStatus = "deleted";
+            existingProduct.ProductStatus = ProductStatus.DELETED;
 
             await _repository.DeleteProduct(existingProduct);
         }

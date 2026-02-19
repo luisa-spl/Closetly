@@ -20,7 +20,7 @@ public static class OrderValidator
 
     public static void CheckProductStatusAndQuantity(TbProduct? product, int itemQuantity)
     {
-        if (product.ProductStatus != "AVAILABLE")
+        if (product.ProductStatus != ProductStatus.AVAILABLE)
         {
             throw new InvalidOperationException($"O produto '{product.ProductType}, com Id {product.ProductId}' não está disponível");
         }
@@ -40,7 +40,7 @@ public static class OrderValidator
             throw new InvalidOperationException($"Produto com Id: '{orderProduct.ProductId}' não encontrado");
         }
 
-        await _productRepository.UpdateProductStatus(product, "UNAVAILABLE");
+        await _productRepository.UpdateProductStatus(product, ProductStatus.UNAVAILABLE);
 
         return product;
     }

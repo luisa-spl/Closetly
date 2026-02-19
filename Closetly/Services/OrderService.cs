@@ -5,6 +5,9 @@ using Closetly.Models;
 using Closetly.Repository;
 using Closetly.Repository.Interface;
 using Closetly.Services.Interface;
+using Closetly.Services;
+
+
 namespace Closetly.Services;
 
 public class OrderService : IOrderService
@@ -12,16 +15,24 @@ public class OrderService : IOrderService
     private readonly IOrderRepository _repository;
     private readonly IUserRepository _userRepository;
     private readonly IProductRepository _productRepository;
+    private readonly IPaymentRepository _paymentRepository;
 
 
-    public OrderService(IOrderRepository orderRepository, IUserRepository userRepository, IProductRepository productRepository)
+    public OrderService
+    (
+        IOrderRepository orderRepository, 
+        IUserRepository userRepository, 
+        IProductRepository productRepository, 
+        IPaymentRepository paymentRepository
+    )
     {
         _repository = orderRepository;
         _userRepository = userRepository;
         _productRepository = productRepository;
+        _paymentRepository = paymentRepository;
     }
-
-    public async Task<OrderResponseDTO> CreateOrder(OrderRequestDTO order)
+ 
+    public async Task<OrderResponseDTO> CreateOrder(OrderRequestDTO order, CancellationToken cancellationToken)
     {
         var user = _userRepository.GetById(order.UserId);
 
@@ -66,14 +77,42 @@ public class OrderService : IOrderService
 
         }
 
-        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, ProductStatus.UNAVAILABLE);
         newOrder.TbOrderProducts = orderProducts;
         newOrder.OrderTotalItems = orderProducts.Count();
         newOrder.OrderTotalValue = total;
 
-        var createdOrder = await _repository.CreateOrder(newOrder);
+        var newPayment = new CreatePaymentDTO {
+            PaymentValue = newOrder.OrderTotalValue,
+            OrderId = newOrder.OrderId,
+        };
 
-        return NewOrderMapper.MapToOrderResponseDTO(createdOrder);
+        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, ProductStatus.UNAVAILABLE);
+        var createdOrder = await _repository.CreateOrder(newOrder);
+        var payment = await _paymentRepository.CreatePayment(newPayment, cancellationToken);
+
+        return NewOrderMapper.MapToOrderResponseDTO(createdOrder, payment);
+    }
+
+    public async Task CancelOrder(Guid orderId)
+    {
+        var order = await _repository.GetOrderWithProductsById(orderId);
+
+        if (order == null)
+        {
+            throw new InvalidOperationException($"Pedido com Id '{orderId}' não encontrado");
+        }
+
+        if (order.OrderStatus != OrderStatus.PENDING)
+        {
+            throw new InvalidOperationException($"Pedido com Id '{orderId}' não pode ser cancelado pois já foi pago e/ou está concluido");
+        }
+
+        order.OrderStatus = OrderStatus.CANCELLED;
+        var orderProducts = order.TbOrderProducts.ToList();
+
+        await OrderValidator.ChangeManyProductsStatus(_productRepository, orderProducts, ProductStatus.AVAILABLE);
+
+        await _repository.CancelOrder(order);
     }
 
     public async Task ReturnOrder(Guid orderId)

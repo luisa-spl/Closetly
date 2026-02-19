@@ -25,7 +25,7 @@ namespace Closetly.Services
                 throw new InvalidOperationException("Pedido não encontrado.");
             }
 
-            if (order.OrderStatus != "concluded")
+            if (order.OrderStatus != OrderStatus.CONCLUDED)
             {
                 throw new InvalidOperationException("Você só pode avaliar pedidos finalizados.");
             }

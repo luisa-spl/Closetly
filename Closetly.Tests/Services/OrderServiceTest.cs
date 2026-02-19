@@ -16,6 +16,7 @@ internal class OrderServiceTest
     private Mock<IOrderRepository> _orderRepositoryMock;
     private Mock<IUserRepository> _userRepositoryMock;
     private Mock<IProductRepository> _productRepositoryMock;
+    private Mock<IPaymentRepository> _paymentRepositoryMock;
     private OrderService _service;
 
     [SetUp]
@@ -25,8 +26,14 @@ internal class OrderServiceTest
         _orderRepositoryMock = new Mock<IOrderRepository>();
         _userRepositoryMock = new Mock<IUserRepository>();
         _productRepositoryMock = new Mock<IProductRepository>();
+        _paymentRepositoryMock = new Mock<IPaymentRepository>();
 
-        _service = new OrderService(_orderRepositoryMock.Object, _userRepositoryMock.Object, _productRepositoryMock.Object);
+        _service = new OrderService(
+            _orderRepositoryMock.Object,
+            _userRepositoryMock.Object, 
+            _productRepositoryMock.Object, 
+            _paymentRepositoryMock.Object
+        );
     }
 
     [Test]
@@ -47,12 +54,13 @@ internal class OrderServiceTest
             .Returns((TbUser)null);
 
         var result = Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _service.CreateOrder(requestDto)
+            _service.CreateOrder(requestDto, CancellationToken.None)
         );
 
         Assert.That(result.Message, Does.Contain($"Usuário com Id '{requestDto.UserId}' não encontrado"));
 
         _orderRepositoryMock.Verify(x => x.CreateOrder(It.IsAny<TbOrder>()), Times.Never);
+        _paymentRepositoryMock.Verify(x => x.CreatePayment(It.IsAny<CreatePaymentDTO>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Test]
@@ -70,11 +78,12 @@ internal class OrderServiceTest
 
         _userRepositoryMock.Setup(x => x.GetById(userId)).Returns(validUser);
 
-        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOrder(requestDto));
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOrder(requestDto, CancellationToken.None));
 
         Assert.That(ex.Message, Is.EqualTo("Você deve adicionar pelo menos 1 produto ao pedido"));
 
         _orderRepositoryMock.Verify(x => x.CreateOrder(It.IsAny<TbOrder>()), Times.Never);
+        _paymentRepositoryMock.Verify(x => x.CreatePayment(It.IsAny<CreatePaymentDTO>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Test]
@@ -101,7 +110,7 @@ internal class OrderServiceTest
         var validProduct = new TbProduct
         {
             ProductId = productId,
-            ProductStatus = "AVAILABLE",
+            ProductStatus = ProductStatus.AVAILABLE,
             ProductValue = 150.00m
         };
 
@@ -113,7 +122,7 @@ internal class OrderServiceTest
         {
             OrderId = Guid.NewGuid(),
             UserId = userId,
-            OrderStatus = "PENDING",
+            OrderStatus = OrderStatus.PENDING,
             OrderTotalValue = 150.00m,
             OrderTotalItems = 1
         };
@@ -122,7 +131,13 @@ internal class OrderServiceTest
             .Setup(x => x.CreateOrder(It.IsAny<TbOrder>()))
             .ReturnsAsync(createdOrderFromDb);
 
-        var result = await _service.CreateOrder(requestDto);
+        var mockPayment = new TbPayment { PaymentId = Guid.NewGuid(), PaymentStatus = "PENDING", PaymentValue = createdOrderFromDb.OrderTotalValue };
+
+        _paymentRepositoryMock
+            .Setup(x => x.CreatePayment(It.IsAny<CreatePaymentDTO>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mockPayment);
+
+        var result = await _service.CreateOrder(requestDto, CancellationToken.None);
               
         Assert.That(result, Is.Not.Null);
               
@@ -130,8 +145,13 @@ internal class OrderServiceTest
             orderParaSalvar.UserId == userId &&
             orderParaSalvar.OrderTotalItems == 1 &&
             orderParaSalvar.OrderTotalValue == 150.00m && 
-            orderParaSalvar.OrderStatus == "PENDING"
+            orderParaSalvar.OrderStatus == OrderStatus.PENDING
         )), Times.Once);
+
+        _paymentRepositoryMock.Verify(x => x.CreatePayment(
+        It.Is<CreatePaymentDTO>(p => p.PaymentValue == 150.00m),
+        It.IsAny<CancellationToken>()
+    ), Times.Once);
     }
 
     [Test]
@@ -155,7 +175,7 @@ internal class OrderServiceTest
         var mockOrder = new TbOrder
         {
             OrderId = orderId,
-            OrderStatus = "LEASED"
+            OrderStatus = OrderStatus.LEASED
         };
 
         _orderRepositoryMock.Setup(x => x.GetOrderWithProductsById(orderId)).ReturnsAsync(mockOrder);
@@ -173,8 +193,8 @@ internal class OrderServiceTest
         var product1Id = Guid.NewGuid();
         var product2Id = Guid.NewGuid();
 
-        var product1 = new TbProduct { ProductId = product1Id, ProductStatus = "UNAVAILABLE" };
-        var product2 = new TbProduct { ProductId = product2Id, ProductStatus = "UNAVAILABLE" };
+        var product1 = new TbProduct { ProductId = product1Id, ProductStatus = ProductStatus.UNAVAILABLE };
+        var product2 = new TbProduct { ProductId = product2Id, ProductStatus = ProductStatus.UNAVAILABLE };
 
         _productRepositoryMock
         .Setup(x => x.GetProductById(product1Id))
@@ -187,7 +207,7 @@ internal class OrderServiceTest
         var mockOrder = new TbOrder
         {
             OrderId = orderId,
-            OrderStatus = "PENDING",
+            OrderStatus = OrderStatus.PENDING,
             TbOrderProducts = new List<TbOrderProduct>
             {
                 new TbOrderProduct { OrderId= orderId, ProductId = product1Id, Quantity = 1 },
@@ -199,7 +219,7 @@ internal class OrderServiceTest
 
         await _service.CancelOrder(orderId);
 
-        Assert.That(mockOrder.OrderStatus, Is.EqualTo("CANCELLED"));
+        Assert.That(mockOrder.OrderStatus, Is.EqualTo(OrderStatus.CANCELLED));
 
         _orderRepositoryMock.Verify(x => x.CancelOrder(mockOrder), Times.Once);
     }

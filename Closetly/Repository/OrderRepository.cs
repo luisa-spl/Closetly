@@ -40,6 +40,13 @@ public class OrderRepository : IOrderRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task CancelOrder(TbOrder order)
+    {
+        order.OrderStatus = OrderStatus.CANCELLED;
+        _context.TbOrders.Update(order);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<List<TbOrder>> GetOrdersByUserId(Guid userId)
     {
         return await _context.TbOrders

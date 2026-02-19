@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Closetly.DTO;
 using Closetly.Models;
 using Closetly.Repository.Interface;
@@ -17,17 +13,21 @@ namespace Closetly.Repository
             _context = context;
         }
 
-
-        public async Task CreatePayment(PaymentDTO payment, CancellationToken ct)
+        public async Task<TbPayment?> CreatePayment(CreatePaymentDTO payment, CancellationToken ct)
         {
-            _context.TbPayments.Add(new TbPayment
+            var newPayment = new TbPayment
             {
+                PaymentId = new Guid(),
                 OrderId = payment.OrderId,
-                PaymentType = payment.PaymentType,
+                PaymentStatus = PaymentStatus.PENDING,
                 PaymentValue = payment.PaymentValue,
-                PaymentStatus = PaymentStatus.PENDING
-            });
+                PaymentType = PaymentType.PIX,
+
+            };
+
+            _context.TbPayments.Add(newPayment);
             await _context.SaveChangesAsync(ct);
+            return newPayment;
         }
 
         public async Task PayOrder(PaymentDTO payment, CancellationToken ct)
