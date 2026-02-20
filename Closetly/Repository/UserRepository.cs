@@ -68,16 +68,12 @@ namespace Closetly.Repository
             return orders;
         }
 
-        public void CreateUser (UserDTO user)
+        public void CreateUser(TbUser user)
         {
-            TbUser newUser = new TbUser();
-
-            newUser.UserName = user.UserName;
-            newUser.Phone = user.Phone;
-            newUser.Email = user.Email;
-
-            _context.TbUsers.Add(newUser);
-            _context.SaveChanges();
+            
+           _context.TbUsers.Add(user);
+           _context.SaveChanges();
+           
         }
 
         public List<TbUser> GetUsers()
