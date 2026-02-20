@@ -198,35 +198,40 @@ public class UserServiceTest
     [Test]
     public void CreateUser_ShouldReturnNull_WhenUserIsNull()
     {
+        UserDTO nullUser = null;
         // Act
-        var result = _userService.CreateUser(null!);
+        var result = _userService.CreateUser(nullUser);
 
         // Assert
         Assert.That(result, Is.Null);
-        _userRepositoryMock.Verify(r => r.CreateUser(It.IsAny<UserDTO>()), Times.Never);
+        _userRepositoryMock.Verify(r => r.CreateUser(It.IsAny<TbUser>()), Times.Never);
     }
 
     [Test]
     public void CreateUser_ShouldCallRepositoryAndReturnSameUser_WhenUserIsValid()
     {
         // Arrange
-        var user = new UserDTO
+        var userDto = new UserDTO
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.Empty,
             UserName = "Marco",
-            Phone = "61999999999",
-            Email = "marco@email.com"
+            Phone = "11999999999",
+            Email = "marco@closetly.com"
         };
 
-        _userRepositoryMock
-            .Setup(r => r.CreateUser(user));
-
-        // Act
-        var result = _userService.CreateUser(user);
+        // ACT
+        var result = _userService.CreateUser(userDto);
 
         // Assert
-        Assert.That(result, Is.SameAs(user));
-        _userRepositoryMock.Verify(r => r.CreateUser(user), Times.Once);
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.UserName, Is.EqualTo(userDto.UserName));
+        Assert.That(result.Phone, Is.EqualTo(userDto.Phone));
+        Assert.That(result.Email, Is.EqualTo(userDto.Email));
+       
+        _userRepositoryMock.Verify(x => x.CreateUser(It.Is<TbUser>(u =>
+                 u.UserName == "Marco" &&
+                 u.Email == "marco@closetly.com"
+             )), Times.Once);
     }
 
     // -------------------------

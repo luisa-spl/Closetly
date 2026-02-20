@@ -38,16 +38,32 @@ namespace Closetly.Services
             return "";
         }
         
-        public UserDTO? CreateUser(UserDTO user)
+        public  UserDTO CreateUser(UserDTO user)
         {
             if(user == null)
             {
                 return null;
             }
 
-            _repository.CreateUser(user);
+            TbUser newUser = new TbUser
+            {
+                UserId = Guid.NewGuid(),
+                UserName = user.UserName,
+                Phone = user.Phone,
+                Email = user.Email
+            };
 
-            return user;
+            _repository.CreateUser(newUser);
+
+            UserDTO userResponse = new UserDTO
+            {
+                Id = newUser.UserId,
+                UserName = user.UserName,
+                Phone = user.Phone,
+                Email = user.Email
+            };
+                
+            return userResponse;
         }
 
         public List<UserOrders>? GetUserOrders(Guid userId)
