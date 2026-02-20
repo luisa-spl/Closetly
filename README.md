@@ -88,4 +88,4 @@ Os campos do tipo `string` que representam enums aceitam os seguintes valores (v
 **PaymentStatus** — situação do pagamento (ex: pendente, pago): 'APPROVED' | 'PENDING'.
 
 
-Desenvolvido com 💜 por Géssica Medeiros, Marina Bortolucci e Luisa Spinola
+Desenvolvido com 💜 por Gessica Azevedo, Marina Bortolucci e Luisa Spinola
