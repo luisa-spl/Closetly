@@ -1,10 +1,11 @@
+using Closetly.DTO;
+using Closetly.Services.Interface;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Closetly.DTO;
-using Closetly.Services.Interface;
-using Microsoft.AspNetCore.Mvc;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Closetly.Controllers
 {
@@ -28,19 +29,35 @@ namespace Closetly.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return BadRequest(new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Solicitação Inválida",
+                    Detail = ex.Message,
+                    Type = "https://httpwg.org/specs/rfc9110.html#status.400"
+                });
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException error)
             {
-                return Conflict(new { error = ex.Message });
+                return Conflict(new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = "Conflito",
+                    Detail = error.Message,
+                    Type = "https://httpwg.org/specs/rfc9110.html#status.409"
+                }); 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Erro interno ao processar pagamento." });
+                return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Erro interno ao processar pagamento.",
+                    Detail = ex.Message
+                });
             }
             
             return Ok(new { message = "Pagamento registrado com sucesso." });
-
         }
     }
 }

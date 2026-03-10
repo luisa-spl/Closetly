@@ -172,9 +172,13 @@ public class OrderControllerTest
         var result = await _controller.CancelOrder(orderId);
 
         Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
-        var objectResult = result as NotFoundObjectResult;
-        Assert.That(objectResult.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
-        Assert.That(objectResult.Value, Is.EqualTo(errorMessage));
+        var nf = (NotFoundObjectResult)result;
+
+        var pd = nf.Value as ProblemDetails;
+        Assert.That(pd, Is.Not.Null);
+        Assert.That(pd!.Status, Is.EqualTo(StatusCodes.Status404NotFound));
+        Assert.That(pd.Title, Is.EqualTo("Não encontrado"));
+        Assert.That(pd.Detail, Is.EqualTo(errorMessage));
     }
 
     [Test]
@@ -190,9 +194,13 @@ public class OrderControllerTest
         var result = await _controller.CancelOrder(orderId);
 
         Assert.That(result, Is.InstanceOf<ConflictObjectResult>());
-        var objectResult = result as ConflictObjectResult;
-        Assert.That(objectResult.StatusCode, Is.EqualTo(StatusCodes.Status409Conflict));
-        Assert.That(objectResult.Value, Is.EqualTo(errorMessage));
+
+        var nf = (ConflictObjectResult)result;
+        var pd = nf.Value as ProblemDetails;
+
+        Assert.That(pd.Status, Is.EqualTo(StatusCodes.Status409Conflict));
+        Assert.That(pd.Title, Is.EqualTo("Conflito"));
+        Assert.That(pd.Detail, Is.EqualTo(errorMessage));
     }
 
     [Test]
