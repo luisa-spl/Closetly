@@ -28,10 +28,22 @@ namespace Closetly.Controllers
             { 
                 if (error.Message.Contains("encontrado"))
                 {
-                    return NotFound(error.Message);
+                    return NotFound(new ProblemDetails
+                    {
+                        Status = StatusCodes.Status404NotFound,
+                        Title = "Não Encontrado",
+                        Detail = error.Message,
+                        Type = "https://httpwg.org/specs/rfc9110.html#status.404"
+                    });
                 }
 
-                return BadRequest(error.Message);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Solicitação Inválida",
+                    Detail = error.Message,
+                    Type = "https://httpwg.org/specs/rfc9110.html#status.400"
+                }); ;
             }
         }
     }

@@ -20,15 +20,15 @@ namespace Closetly.Controllers
         public IActionResult CreateUser([FromBody] UserDTO user)
         {
             var createdUser = _userService.CreateUser(user);
+
             if(createdUser == null)
             {
-                ProblemDetails problemDetails = new ProblemDetails
+                return BadRequest(new ProblemDetails
                 {
                     Status = StatusCodes.Status400BadRequest,
                     Title = "Erro ao criar usuário",
                     Detail = "Não foi possível criar o usuário.",
-                };
-                return BadRequest(problemDetails);
+                });
             }
             return Ok(createdUser);
         }
@@ -40,13 +40,12 @@ namespace Closetly.Controllers
 
             if (error != "")
             {
-                ProblemDetails problemDetails = new ProblemDetails
+                return BadRequest(new ProblemDetails
                 {
                     Status = StatusCodes.Status400BadRequest,
                     Title = "Usuário não existe na base de dados",
                     Detail = error,
-                };
-                return BadRequest(problemDetails);                
+                });                
             }     
             return NoContent();
         }
@@ -55,15 +54,15 @@ namespace Closetly.Controllers
         public IActionResult GetUserOrders([FromRoute] Guid userId)
         {
             List<UserOrders>? orders = _userService.GetUserOrders(userId);
+
             if(orders == null)
             {
-                ProblemDetails problemDetails = new ProblemDetails
+                return BadRequest(new ProblemDetails
                 {
                     Status = StatusCodes.Status400BadRequest,
                     Title = "Usuário não existe na base de dados",
                     Detail = "Usuário não foi encontrado para o id informado",
-                };
-                return BadRequest(problemDetails);
+                });
             }
             return Ok(orders);
         }
