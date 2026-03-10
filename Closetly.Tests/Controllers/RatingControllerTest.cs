@@ -48,12 +48,15 @@ public class RatingControllerTest
         _ratingServiceMock.Setup(x => x.CreateRating(ratingDto)).ThrowsAsync(new InvalidOperationException(errorMessage));
                
         var result = await _controller.CreateRating(ratingDto);
-                
+
         Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
-        var notFoundResult = result as NotFoundObjectResult;
-        Assert.That(notFoundResult.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
-                
-        Assert.That(notFoundResult.Value, Is.EqualTo(errorMessage));
+        var nf = (NotFoundObjectResult)result;
+
+        var pd = nf.Value as ProblemDetails;
+        Assert.That(pd, Is.Not.Null);
+        Assert.That(pd!.Status, Is.EqualTo(StatusCodes.Status404NotFound));
+        Assert.That(pd.Title, Is.EqualTo("Não Encontrado"));
+        Assert.That(pd.Detail, Is.EqualTo(errorMessage));
     }
 
     [Test]
@@ -65,10 +68,14 @@ public class RatingControllerTest
         _ratingServiceMock.Setup(x => x.CreateRating(ratingDto)).ThrowsAsync(new InvalidOperationException(errorMessage));
 
         var result = await _controller.CreateRating(ratingDto);
-                
+
         Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
-        var badRequestResult = result as BadRequestObjectResult;
-        Assert.That(badRequestResult.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
-        Assert.That(badRequestResult.Value, Is.EqualTo(errorMessage));
+        var br = (BadRequestObjectResult)result;
+
+        var pd = br.Value as ProblemDetails;
+        Assert.That(pd, Is.Not.Null);
+        Assert.That(pd!.Status, Is.EqualTo(StatusCodes.Status400BadRequest));
+        Assert.That(pd.Title, Is.EqualTo("Solicitação Inválida"));
+        Assert.That(pd.Detail, Is.EqualTo(errorMessage));
     }
 }

@@ -1,15 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Closetly.Controllers;
 using Closetly.DTO;
 using Closetly.Models;
 using Closetly.Services.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Moq;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Closetly.Tests.Controllers
 {
@@ -132,19 +133,25 @@ namespace Closetly.Tests.Controllers
             // Arrange
             var id = Guid.NewGuid();
             var updateDto = new UpdateProductDTO();
+            var message = "Produto não encontrado";
 
             _productServiceMock
                 .Setup(s => s.UpdateProduct(id, updateDto))
-                .ThrowsAsync(new InvalidOperationException("Produto não encontrado."));
+                .ThrowsAsync(new InvalidOperationException("Produto não encontrado"));
 
             // Act
             var result = await _controller.UpdateProduct(id, updateDto);
 
             // Assert
-            var notFound = result as NotFoundObjectResult;
-            Assert.That(notFound, Is.Not.Null);
-            Assert.That(notFound!.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
-            Assert.That(notFound.Value, Is.EqualTo("Produto não encontrado."));
+            Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
+
+            var nf = (NotFoundObjectResult)result;
+            var pd = nf.Value as ProblemDetails;
+
+            Assert.That(pd, Is.Not.Null);
+            Assert.That(pd!.Status, Is.EqualTo(StatusCodes.Status404NotFound));
+            Assert.That(pd.Title, Is.EqualTo("Não Encontrado"));
+            Assert.That(pd.Detail, Is.EqualTo(message));
 
             _productServiceMock.Verify(s => s.UpdateProduct(id, updateDto), Times.Once);
         }
@@ -217,11 +224,15 @@ namespace Closetly.Tests.Controllers
             var result = await _controller.DeleteProduct(id);
 
             // Assert
-            var notFound = result as NotFoundObjectResult;
-            Assert.That(notFound, Is.Not.Null);
-            Assert.That(notFound!.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
-            Assert.That(notFound.Value, Is.EqualTo(message));
+            Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
 
+            var nf = (NotFoundObjectResult)result;
+            var pd = nf.Value as ProblemDetails;
+
+            Assert.That(pd, Is.Not.Null);
+            Assert.That(pd!.Status, Is.EqualTo(StatusCodes.Status404NotFound));
+            Assert.That(pd.Title, Is.EqualTo("Não Encontrado"));
+            Assert.That(pd.Detail, Is.EqualTo(message));
             _productServiceMock.Verify(s => s.DeleteProduct(id), Times.Once);
         }
 
@@ -230,7 +241,7 @@ namespace Closetly.Tests.Controllers
         {
             // Arrange
             var id = Guid.NewGuid();
-            var message = "O produto já foi deletado."; // não contém "encontrado"
+            var message = "O produto já foi deletado.";
 
             _productServiceMock
                 .Setup(s => s.DeleteProduct(id))
@@ -240,11 +251,15 @@ namespace Closetly.Tests.Controllers
             var result = await _controller.DeleteProduct(id);
 
             // Assert
-            var conflict = result as ConflictObjectResult;
-            Assert.That(conflict, Is.Not.Null);
-            Assert.That(conflict!.StatusCode, Is.EqualTo(StatusCodes.Status409Conflict));
-            Assert.That(conflict.Value, Is.EqualTo(message));
+            Assert.That(result, Is.InstanceOf<ConflictObjectResult>());
 
+            var nf = (ConflictObjectResult)result;
+            var pd = nf.Value as ProblemDetails;
+
+            Assert.That(pd.Status, Is.EqualTo(StatusCodes.Status409Conflict));
+            Assert.That(pd.Title, Is.EqualTo("Conflito"));
+            Assert.That(pd.Detail, Is.EqualTo(message));
+           
             _productServiceMock.Verify(s => s.DeleteProduct(id), Times.Once);
         }
 
